@@ -2,13 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Conway ASCII Sandbox</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    ::selection { background: #ffffff; color: #000000; }
+
+    html { overflow: hidden; }
 
     body {
-      background: #0d0a00;
-      overflow: hidden;
+      background: #000000;
       width: 100vw;
       height: 100vh;
     }
@@ -19,9 +22,9 @@
       width: 100vw;
       height: 100vh;
       font-family: 'Courier New', Courier, monospace;
-      font-size: 14px;
-      line-height: 1.4;
-      color: #221800;
+      font-size: 9px;
+      line-height: 0.63;
+      color: #000000;
       white-space: pre;
       cursor: crosshair;
       user-select: none;
@@ -34,84 +37,262 @@
       padding: 8px 16px;
       font-family: 'Courier New', Courier, monospace;
       font-size: 12px;
-      color: #555;
-      opacity: 0;
-      transition: opacity 300ms;
+      color: #999;
+      transform: translateY(-100%);
+      transition: transform 350ms ease-out;
       pointer-events: none;
       letter-spacing: 1px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    #overlay-controls {
+      flex: 1;
+      min-width: 0;
+    }
+
+    #tab-hint {
+      position: fixed;
+      top: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 10px;
+      color: #ffffff;
+      letter-spacing: 1px;
+      pointer-events: none;
+      z-index: 5;
+      opacity: 0;
+      transition: opacity 600ms;
+    }
+
+    #tab-hint.visible {
+      opacity: 1;
+    }
+
+    #gen-counter {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 10px;
+      color: #888888;
+      letter-spacing: 1px;
+      flex-shrink: 0;
+      white-space: nowrap;
     }
 
     #stamp-bar {
       position: fixed;
       bottom: 0; left: 0; right: 0;
-      background: rgba(13,10,0,0.95);
-      border-top: 1px solid #332200;
+      background: rgba(0,0,0,0.95);
+      border-top: 1px solid #333333;
       display: flex;
       align-items: center;
-      gap: 2px;
+      flex-wrap: wrap;
+      gap: 4px;
       padding: 6px 12px;
       font-family: 'Courier New', Courier, monospace;
       z-index: 6;
-    }
-
-    #stamp-label {
-      color: #443300;
-      font-size: 10px;
-      letter-spacing: 1px;
-      margin-right: 8px;
+      transform: translateY(100%);
+      transition: transform 350ms ease-out;
+      pointer-events: none;
     }
 
     .stamp-btn {
-      border: 1px solid #443300;
+      border: 1px solid #666666;
       background: none;
-      color: #664400;
+      color: #888888;
       font-family: 'Courier New', Courier, monospace;
       font-size: 10px;
       letter-spacing: 1px;
-      padding: 4px 12px;
+      padding: 2px 6px;
       cursor: pointer;
     }
 
     .stamp-btn.active {
-      border-color: #ffcc44;
-      color: #ffcc44;
-      background: rgba(255,204,68,0.08);
+      border-color: #ffffff;
+      color: #ffffff;
+      background: rgba(255,255,255,0.08);
     }
 
     .stamp-btn:hover {
-      border-color: #886600;
-      color: #886600;
+      border-color: #999999;
+      color: #999999;
     }
 
     .stamp-btn:focus-visible {
-      outline: 1px dashed #ffcc44;
+      outline: 1px dashed #ffffff;
       outline-offset: 2px;
     }
 
     #stamp-hint {
-      color: #332200;
+      color: #888888;
       font-size: 10px;
       margin-left: 12px;
       display: none;
     }
 
+    @keyframes stamp-btn-pulse {
+      0%   { color: #888888; border-color: #666666; background: none; }
+      70%  { color: #bbbbbb; border-color: #bbbbbb; background: rgba(255,255,255,0.04); }
+      100% { color: #888888; border-color: #666666; background: none; }
+    }
+
+    .stamp-btn.pulsing {
+      animation: stamp-btn-pulse 0.7s ease-in forwards;
+    }
+
     #stamp-hint.visible {
       display: inline;
+    }
+
+    #start-screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      overflow-y: auto;
+      padding: 40px 20px;
+      z-index: 10;
+      opacity: 1;
+      transition: opacity 100ms;
+    }
+
+    #start-panel {
+      background: rgba(0,0,0,0.92);
+      padding: 0;
+      max-width: 480px;
+      width: 100%;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 12px;
+      line-height: 1.8;
+      letter-spacing: 0.5px;
+    }
+
+    .ascii-hr {
+      display: flex;
+      align-items: center;
+      color: #555555;
+      overflow: hidden;
+    }
+
+    .ascii-hr::before, .ascii-hr::after {
+      content: '+';
+      flex-shrink: 0;
+    }
+
+    .ascii-hr-fill {
+      flex: 1;
+      overflow: hidden;
+      white-space: nowrap;
+      color: #555555;
+    }
+
+    .ascii-section-inner {
+      padding: 12px 16px;
+      border-left: 1px solid #555555;
+      border-right: 1px solid #555555;
+    }
+
+    #start-title {
+      color: #ffffff;
+      font-size: 14px;
+      letter-spacing: 3px;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+
+    #start-subtitle {
+      color: #888888;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-align: center;
+    }
+
+    .start-rules, .start-controls {
+      color: #cccccc;
+    }
+
+    #begin-btn {
+      display: block;
+      margin: 0 auto;
+      border: none;
+      background: rgba(255,255,255,0.08);
+      color: #ffffff;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      padding: 2px 6px;
+      cursor: pointer;
+      outline: none;
+    }
+
+    #begin-btn:focus-visible {
+      outline: 1px dashed #ffffff;
+      outline-offset: 2px;
+    }
+
+    #begin-btn:hover {
+      background: rgba(255,255,255,0.15);
     }
   </style>
 </head>
 <body>
   <pre id="field"></pre>
+  <div id="start-screen">
+    <div id="start-panel">
+      <div class="ascii-hr"><span class="ascii-hr-fill">------------------------------------------------------------------------</span></div>
+      <div class="ascii-section">
+        <div class="ascii-section-inner">
+          <div id="start-title">CONWAY ASCII SANDBOX</div>
+          <div id="start-subtitle">a cellular automaton by John Horton Conway, 1970</div>
+        </div>
+      </div>
+      <div class="ascii-hr"><span class="ascii-hr-fill">------------------------------------------------------------------------</span></div>
+      <div class="ascii-section">
+        <div class="ascii-section-inner start-rules">
+          A simulation where cells live and die by simple rules — yet produce endless complexity. It is not a game you win. It is a world you observe.
+        </div>
+      </div>
+      <div class="ascii-hr"><span class="ascii-hr-fill">------------------------------------------------------------------------</span></div>
+      <div class="ascii-section">
+        <div class="ascii-section-inner start-rules">
+          · Press [← →] arrow keys to select freehand or stamp tool.<br>
+          · Draw with the freehand tool or stamp a known pattern onto the grid.<br>
+          · Watch complexity emerge across cycles.
+        </div>
+      </div>
+      <div class="ascii-hr"><span class="ascii-hr-fill">------------------------------------------------------------------------</span></div>
+      <div class="ascii-section">
+        <div class="ascii-section-inner" style="text-align: center;">
+          <button type="button" id="begin-btn">[ PRESS ANY KEY TO START ]</button>
+        </div>
+      </div>
+      <div class="ascii-hr"><span class="ascii-hr-fill">------------------------------------------------------------------------</span></div>
+    </div>
+  </div>
+  <div id="tab-hint">press [← →] to try different patterns</div>
   <div id="overlay">
-    [SPACE] pause · [R] clear · left-drag draw · right-drag erase
+    <span id="overlay-controls">[← →] select tool · [SPACE] pause/resume · [R] clear · [H] hide/show tools · [ESC] restart</span>
+    <div id="gen-counter">GEN 0</div>
   </div>
   <div id="stamp-bar">
-    <span id="stamp-label">STAMPS</span>
-    <button type="button" class="stamp-btn" data-pattern="glider">GLIDER</button>
+    <button type="button" class="stamp-btn" id="freehand-btn">FREE HAND</button>
     <button type="button" class="stamp-btn" data-pattern="blinker">BLINKER</button>
+    <button type="button" class="stamp-btn" data-pattern="glider">GLIDER</button>
     <button type="button" class="stamp-btn" data-pattern="pulsar">PULSAR</button>
     <button type="button" class="stamp-btn" data-pattern="gosper">GOSPER GUN</button>
-    <span id="stamp-hint">ESC to cancel</span>
+    <button type="button" class="stamp-btn" data-pattern="diamond">DIAMOND</button>
+    <button type="button" class="stamp-btn" data-pattern="linepuffer">LINE PUFFER</button>
+    <button type="button" class="stamp-btn" data-pattern="spacefiller">SPACEFILLER</button>
+    <button type="button" class="stamp-btn" data-pattern="spacefiller1">SPACEFILLER 1</button>
+    <button type="button" class="stamp-btn" data-pattern="barberpole">BARBERPOLE</button>
+    <button type="button" class="stamp-btn" data-pattern="scrubber">SCRUBBER</button>
+    <button type="button" class="stamp-btn" data-pattern="shipinbottle">SHIP IN BOTTLE</button>
+    <button type="button" class="stamp-btn" data-pattern="enretard">DELAYED</button>
+    <button type="button" class="stamp-btn" data-pattern="tumblersynth">TUMBLER SYNTH</button>
+    <button type="button" class="stamp-btn" data-pattern="hacksaw">HACKSAW</button>
   </div>
   <script>
     const field = document.getElementById('field');
@@ -119,18 +300,20 @@
 
     // Measure a single character's rendered size
     const probe = document.createElement('pre');
-    probe.style.cssText = 'position:absolute;visibility:hidden;white-space:pre;font-family:"Courier New",Courier,monospace;font-size:14px;line-height:1.4';
-    probe.textContent = 'X';
+    probe.style.cssText = 'position:absolute;visibility:hidden;white-space:pre;font-family:"Courier New",Courier,monospace;font-size:9px;line-height:0.63';
+    probe.textContent = 'X\nX';
     document.body.appendChild(probe);
     const charW = probe.getBoundingClientRect().width;
-    const charH = probe.getBoundingClientRect().height;
+    const charH = probe.getBoundingClientRect().height / 2;
     document.body.removeChild(probe);
 
-    const COLS = Math.floor(window.innerWidth / charW);
-    const ROWS = Math.floor(window.innerHeight / charH);
+    const COLS = Math.ceil(window.innerWidth / charW);
+    const ROWS = Math.ceil(window.innerHeight / charH);
 
     let current = new Uint8Array(COLS * ROWS);
     let next    = new Uint8Array(COLS * ROWS);
+    let decay   = new Uint8Array(COLS * ROWS);
+    const DECAY_STEPS = 8;
 
     // Smoke test: log dimensions
     console.log(`Grid: ${COLS} cols × ${ROWS} rows, char: ${charW.toFixed(2)}×${charH.toFixed(2)}px`);
@@ -199,12 +382,10 @@
     function charFor(alive, neighbors) {
       if (alive) {
         return neighbors === 2 || neighbors === 3
-          ? { ch: '█', color: '#ffcc44' }
-          : { ch: '▓', color: '#cc9922' };
+          ? { ch: '+', color: '#ffffff' }
+          : { ch: '·', color: '#ffffff' };
       }
-      if (neighbors === 0) return { ch: '░', color: null };       // default color from CSS
-      if (neighbors <= 2)  return { ch: '▒', color: '#443300' };
-      return                      { ch: '▓', color: '#886600' };
+      return { ch: ' ', color: null };
     }
 
     function render() {
@@ -213,13 +394,23 @@
       for (let r = 0; r < ROWS; r++) {
         for (let c = 0; c < COLS; c++) {
           if (ghostSet.has(r * COLS + c)) {
-            parts.push('<span style="color:#cc9922">█</span>');
+            parts.push('<span style="color:#888888">+</span>');
             continue;
           }
           const alive = current[r * COLS + c];
+          if (!alive) {
+            const d = decay[r * COLS + c];
+            if (d > 0) {
+              const v = Math.round((d / DECAY_STEPS) * 180).toString(16).padStart(2, '0');
+              parts.push(`<span style="color:#${v}${v}${v}">·</span>`);
+            } else {
+              parts.push(' ');
+            }
+            continue;
+          }
           const n = countNeighbors(current, r, c);
           const { ch, color } = charFor(alive, n);
-          parts.push(color ? `<span style="color:${color}">${ch}</span>` : ch);
+          parts.push(`<span style="color:${color}">${ch}</span>`);
         }
         if (r < ROWS - 1) parts.push('\n');
       }
@@ -230,6 +421,8 @@
     let lastTick = 0;
     const TICK_MS = 100;
     let dirty = true;
+    let gen = 0;
+    const genCounter = document.getElementById('gen-counter');
 
     let activePattern = null;  // null | pattern object from PATTERNS
     let ghostCells    = [];    // [{r, c}] rendered as ghost in render()
@@ -270,19 +463,249 @@
       }
     };
 
+    function parseRLE(rle) {
+      const lines = rle.trim().split('\n').filter(l => !l.trim().startsWith('#'));
+      const headerIdx = lines.findIndex(l => l.trim().startsWith('x'));
+      const data = lines.slice(headerIdx + 1).join('').replace(/\s/g, '');
+      const cells = [];
+      let r = 0, c = 0, num = '';
+      for (const ch of data) {
+        if (ch >= '0' && ch <= '9') { num += ch; continue; }
+        const n = num === '' ? 1 : parseInt(num);
+        num = '';
+        if (ch === 'b') { c += n; }
+        else if (ch === 'o') { for (let i = 0; i < n; i++) cells.push([r, c++]); }
+        else if (ch === '$') { r += n; c = 0; }
+        else if (ch === '!') break;
+      }
+      return cells;
+    }
+
+    PATTERNS.diamond = { cells: parseRLE(`x = 12, y = 9, rule = B3/S23
+4b4o4b2$2b8o2b2$12o2$2b8o2b2$4b4o!`) };
+
+    PATTERNS.linepuffer = { cells: parseRLE(`x = 156, y = 32, rule = b3/s23
+34b3o27b3o13b3o27b3o43b$33bo3bo25bo3bo11bo3bo25bo3bo42b$32b2o4bo11bo
+11bo4b2o9b2o4bo11bo11bo4b2o41b$31bobob2ob2o3b4ob2ob2ob4o3b2ob2obobo7bo
+bob2ob2o3b4ob2ob2ob4o3b2ob2obobo40b$30b2obo4bob2ob4o7b4ob2obo4bob2o5b
+2obo4bob2ob4o7b4ob2obo4bob2o39b$29bo4bo3bo4bo2b2obobob2o2bo4bo3bo4bo3b
+o4bo3bo4bo2b2obobob2o2bo4bo3bo4bo38b$6bo17bo16bo4bo7bo4bo27bo4bo7bo4bo
+25bo17bo6b$5b3o15b3o3b2o7b2o6bo7bo6b2o7b2o3b2o7b2o6bo7bo6b2o7b2o12b3o
+15b3o5b$3b2ob3o13b3ob2o100b2ob3o13b3ob2o3b$4bo2bob2o4bo4b2obo2bo18b2o
+7b2o35b2o7b2o27bo2bob2o4bo4b2obo2bo4b$b2obo4bobob2ob2obobo4bob2o17bo5b
+o39bo5bo26b2obo4bobob2ob2obobo4bob2ob$b2obobo2bobo7bobo2bobob2o15bo2bo
+3bo2bo35bo2bo3bo2bo24b2obobo2bobo7bobo2bobob2ob$bo8b3obobob3o8bo16bo2b
+obo2bo37bo2bobo2bo25bo8b3obobob3o8bob$2o7b2o9b2o7b3obo15bobo43bobo24bo
+b3o7b2o9b2o7b2o$33b2o12bobobobo39bobobobo21b2o33b$31b2obo11b2obobob2o
+37b2obobob2o20bob2o31b$34b2o9bo3bobo3bo35bo3bobo3bo18b2o34b$33bo88bo
+33b$35b3o7b2ob2ob2ob2o35b2ob2ob2ob2o16b3o35b$7b3o15b3o9b2o78b2o9b3o15b
+3o7b$6bo3bo13bo3bo9bo7bo3bo3bo37bo3bo3bo16bo9bo3bo13bo3bo6b$5b2o4bo11b
+o4b2o8b2o6bo3bo3bo7b3o9b3o9b3o3bo3bo3bo4b3o8b2o8b2o4bo11bo4b2o5b$4bobo
+b2ob2o3b3o3b2ob2obobo8bo21bo3bo7bo3bo7bo3bo14bo3bo7bo8bobob2ob2o3b3o3b
+2ob2obobo4b$3b2obo4bob2ob3ob2obo4bob2o6bobo5b2o5b2o5b2o3b2o5b2o3b2o5b
+2o3b2o5b2o5b2o3b2o5bobo6b2obo4bob2ob3ob2obo4bob2o3b$2bo4bo3bo4bobo4bo
+3bo4bo6b3o3b4o3b4o3b2obobob2o3b2obobob2o3b2obobob2o3b4o3b2obobob2o3b3o
+6bo4bo3bo4bobo4bo3bo4bo2b$14bo5bo20b2ob2o2b2ob2o2b2ob2ob2ob2ob2ob2ob2o
+b2ob2ob2ob2ob2ob2ob2o2b2ob2ob2ob2ob2ob2o20bo5bo14b$2b2o7b2o9b2o7b2ob3o
+5bobo4bobo4bobo3bobo3bobo3bobo3bobo3bobo3bobo4bobo3bobo3bobo5b3ob2o7b
+2o9b2o7b2o2b$36bo82bo36b$34bo6b2ob2o2b2ob2o2b2ob2ob2ob2ob2ob2ob2ob2ob
+2ob2ob2ob2ob2ob2o2b2ob2ob2ob2ob2ob2o6bo34b$34bob2o80b2obo34b$39b78o39b
+$38bo78bo!`) };
+
+    PATTERNS.spacefiller = { cells: parseRLE(`x = 25, y = 35, rule = B3/S23
+5b3o9b3o$5bo2bo8bo2bo$5bo6bo4bo$5bo5b3o3bo$5bo5bob2o2bo$5bo6b3o2bo$6bo
+2bo2b3o3bo$8bo3b3o$9bo5b2o$10b2o$10bo$11b2o$bo8bobobo8bo$o5bobobobob2o
+2bo5bo$o5b3o3bobob3o5bo$5obo3b2o2bo3bob5o$8bobo2b2obo$7b2obobobob2o$8b
+ob2o2bobo$5obo3bo2b2o3bob5o$o5b3obobo3b3o5bo$o5bo2b2obobobobo5bo$bo8bo
+bobo8bo$12b2o$14bo$13b2o$8b2o5bo$10b3o3bo$6bo3b3o2bo2bo$7bo2b3o6bo$7bo
+2b2obo5bo$7bo3b3o5bo$7bo4bo6bo$4bo2bo8bo2bo$5b3o9b3o!`) };
+
+    PATTERNS.barberpole = { cells: parseRLE(`x = 12, y = 12, rule = B3/S23
+10b2o$11bo$9bo2b$7bobo2b2$5bobo4b2$3bobo6b2$2b2o8b$o11b$2o!`) };
+
+    PATTERNS.scrubber = { cells: parseRLE(`x = 11, y = 11, rule = B3/S23
+4b2o$4b2o2$4b3o$3bo3bob2o$2obo3bob2o$2obo3bo$4b3o2$5b2o$5b2o!`) };
+
+    PATTERNS.spacefiller1 = { cells: parseRLE(`x = 29, y = 43, rule = b3/s23
+5bobo21b$4bo2bo21b$3b2o24b$2bo26b$b4o24b$o4bo23b$o2bo25b$o2bo25b$bo9b
+3o3b3o9b$2b4obo2bo2bo3bo2bo8b$3bo3bo5bo3bo11b$4bo8bo3bo11b$4bobo6bo3bo
+11b2$3b3o5b3o3b3o9b$3b2o7bo5bo10b$3b3o6b7o10b$11bo7bo9b$4bobo3b11o8b$
+3bo2bo2bo12b2o5b$3bo5b12o3bo4b$3bo3bo13bo3bo3b$4bo3b12o5bo3b$5b2o12bo
+2bo2bo3b$8b11o3bobo4b$9bo7bo11b$10b7o6b3o3b$10bo5bo7b2o3b$9b3o3b3o5b3o
+3b2$11bo3bo6bobo4b$11bo3bo8bo4b$11bo3bo5bo3bo3b$8bo2bo3bo2bo2bob4o2b$
+9b3o3b3o9bob$25bo2bo$25bo2bo$23bo4bo$24b4ob$26bo2b$24b2o3b$21bo2bo4b$
+21bobo!`) };
+
+    PATTERNS.shipinbottle = { cells: parseRLE(`x = 18, y = 18, rule = B3/S23
+4b2o6b2o4b$3bo2bo4bo2bo3b$3bobo6bobo3b$b2o2b3o2b3o2b2ob$o6bo2bo6bo$ob
+2o10b2obo$bobo10bobob$3b2o3b2o3b2o3b$7bobo8b$7b2o9b$3b2o8b2o3b$bobo10b
+obob$ob2o10b2obo$o6bo2bo6bo$b2o2b3o2b3o2b2ob$3bobo6bobo3b$3bo2bo4bo2bo
+3b$4b2o6b2o!`) };
+
+    PATTERNS.hacksaw = { cells: parseRLE(`x = 199, y = 102, rule = b3/s23
+17b2o180b$18bo180b$91bo107b$91bobo105b$94b2o6b2o95b$52b2o24bo15b2o3bo
+4bo94b$53bo23b2o15b2o3b2o4bo93b$34b2o17bobo5b2o13b2o13bobo11bo9bo83b$
+33bobo18b2o5b3o11b3o13bo13bo8b2o83b$23b2o7b3o12bo15b2obo9b2o26bo94b$
+23bo7b3o13b4o12bo2bo10b2o23b2o95b$16b3o13b3o4bobo6b4o11b2obo11bo120b$
+15bo3bo13bobo3b2o7bo2bo9b3o135b$14bo5bo13b2o4bo7b4o9b2o136b$15bo3bo27b
+4o4b2o17b2o123b$16b3o28bo7bobo16bo124b$16b3o38bo141b$57b2o140b$40b2o9b
+2o64b2o80b$39bo2bo7bo2bo63bo81b$39b3o9b3o61bobo81b$14b3o25b9o64b2o82b$
+13b2ob2o23bo2b5o2bo147b$13b2ob2o23b2o2b3o2b2o134bo12b$13b5o169bo11b$
+12b2o3b2o163bo4bo11b$46bo136b5o11b$47bo151b$43bo3bo12bo138b$44b4o13bo
+137b$56bo4bo123b2o12b$57b5o120b3ob2o11b$177b3o3b4o12b$184b2o13b$15bo
+183b$15b2o182b$67b2o115bo14b$66bobo116bo13b$9bobo40bo12b3o8b2o101bo5bo
+13b$7bo3bo40b4o8b3o10bo102b6o13b$2o5bo10b2o3b2o28b4o8b3o24bo106b$o5bo
+10bobo3bo2bo15bo10bo2bo9bobo18b3ob2o3bo102b$7bo11bo7bo7bo6b2o9b4o10b2o
+18b4o4b2o102b$7bo3bo15bo6b2o16b4o35b2o106b$9bobo15bo24bo146b$23bo2bo
+38b2o16b2o114b$23b2o40bo16bobo114b$81b3o115b$81b2o79bo36b$84b2o77bo35b
+$83b3o71bo5bo35b$158b6o35b2$84bo114b$83b2o114b2$57bo126b2o13b$56b2o
+122b4ob2o12b$45b2o8b2o11bo26bo84b6o13b$45bo8b3o9bobo26b2o84b4o12bob$
+55b2o8bobo12bo54b5o58bo$56b2o2b2o2bo2bo11b2o14bo38bo4bo54bo3bo$57bo2bo
+4bobo26bobo42bo55b4o$66bobo25bo2bo40bo20b4o27b3o6b$68bo26bo2bo59bo3bo
+25b2ob2o6b$162bo21b3o3b3o6b$95bo65bo33b4o$95b2o97bo3bo$172b2o24bo$171b
+4o22bob$171b2ob2o23b$66b2o105b2o6b6o12b$65b3o27bo73bo10bo5bo12b$55b2o
+5bob2o12bo15b2o71bobo16bo12b$55bo6bo2bo12b2o29b2o58bo15bo13b$62bob2o
+13b2o27bo64b2o24b$65b3o11b3o11bo13bo9b2o52b2ob2o23b$66b2o11b2o10bobo
+13bo10bo17b2o33b4o24b$78b2o9b2o16bo27bo2bo33b2o25b$78bo10b2o17bo29bo
+60b$89b2o18b2o27bo22b6o32b$91bobo41b2obo21bo5bo32b$93bo42bo29bo32b$
+149b2obo2bo9bo33b$148b2o6bo42b$137bo12bobo3bo42b$136b2o15b4o42b4$168bo
+30b$137bo29b2o30b$137b2o12bo14b2o8b2o21b$125bo23bobo13b3o9bo21b$125bob
+o20bobo15b2o31b$114b2o12b2o9b2o6bo2bo16b2o30b$114bo13b2o9bo8bobo17bo
+30b$128b2o6b2o6b2o3bobo47b$125bobo7b3o7bo5bo47b$125bo10b2o61b$139bo59b
+$139b2o!`) };
+
+    PATTERNS.enretard = { cells: parseRLE(`x = 11, y = 11, rule = B3/S23
+5bo5b$4bobo4b$2obobobob2o$bobo3bobob$o2bobobo2bo$b2o5b2ob$3b2ob2o3b$3b
+obobo3b$4bobo4b$2bobobobo2b$2b2o3b2o!`) };
+
+    PATTERNS.tumblersynth = { cells: parseRLE(`x = 113, y = 111, rule = 23/3
+69bo17bo25b$67bobo17bobo23b$68b2o17b2o24b$12bobo7bobo88b$8b2o3b2o7b2o
+3b2o11b2o13b2o13b2o13b2o26b$9b2o2bo9bo2b2o12b2o13b2o13b2o13b2o26b$8bo
+19bo17b2ob2o25b2ob2o25b2ob2o2b$46bo3bo25bo3bo25bo3bo2b$44bo2bobo2bo21b
+o2bobo2bo21bo2bobo2bo$14b2o5b2o21bobo3bobo21bobo3bobo21bobo3bobo$13bob
+o5bobo21bo5bo23bo5bo23bo5bob$15bo5bo91b19$18bo19bo74b$16bobo19bobo72b$
+17b2o19b2o73b5$9bo37bo65b$10bo35bo66b$8b3o35b3o64b3$80bobo11bobo16b$
+81b2o3bo3bo3b2o17b$81bo5bobo5bo17b$85b3ob3o21b$56b2ob2o45b2ob2o2b$22bo
+bo7bobo21bo3bo19bo15bo9bo3bo2b$23b2o7b2o20bo2bobo2bo18bo3b3ob3o3bo8bo
+2bobo2bo$23bo9bo20bobo3bobo16b3o5bobo5b3o6bobo3bobo$55bo5bo24bo3bo14bo
+5bob$24b3o3b3o80b$26bo3bo46bo21bo13b$25bo5bo45b2o19b2o13b$76bobo19bobo
+12b11$37b3o73b$37bo75b$38bo74b7$15bo12bo84b$14bo12bo85b$14b3o10b3o83b
+3$10bo102b$8bobo54bo47b$2bo6b2o13bobo38bo47b$obo22b2o3bo34bo47b$b2o22b
+o3bo83b$7b2o20b3o81b$8b2o36b3o64b$7bo48b2ob2o52b$50b2o4bo3bo4b2o46b$
+20bo13b2o14b2o2bo2bobo2bo2b2o46b$21b2obobo7bobo17bobo3bobo50b$20b2o2b
+2o8bo20bo5bo51b$17bo7bo87b$15bobo95b$16b2o95b$2bo52bo5bo51b$obo51bobo
+3bobo50b$b2o47b2o2bo2bobo2bo2b2o46b$50b2o4bo3bo4b2o46b$29bo26b2ob2o52b
+$27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
+13b2o6bo16bo61b$26bobo22bo61b$26bo86b3$7b3o10b3o90b$9bo12bo90b$8bo12bo
+!`) };
+
+    let wipeStartTime = null;
+    let deathOrder = null;
+    let deathProgress = 0;
+    const WIPE_DURATION = 700;
+
+    function buildDeathOrder() {
+      const cells = Array.from({ length: COLS * ROWS }, (_, i) => i);
+      for (let i = cells.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [cells[i], cells[j]] = [cells[j], cells[i]];
+      }
+      return cells;
+    }
+
     function loop(ts) {
-      if (!paused && ts - lastTick >= TICK_MS) {
+      if (wipeStartTime !== null) {
+        const progress = Math.min((ts - wipeStartTime) / WIPE_DURATION, 1);
+        const target = Math.floor(progress * deathOrder.length);
+        while (deathProgress < target) {
+          const i = deathOrder[deathProgress++];
+          current[i] = 0;
+          decay[i] = 0;
+        }
+        dirty = true;
+        if (progress >= 1) { next.fill(0); wipeStartTime = null; deathOrder = null; }
+      }
+      if (!paused && wipeStartTime === null && ts - lastTick >= TICK_MS) {
         nextGen(current, next, COLS, ROWS);
+        for (let i = 0; i < current.length; i++) {
+          if (next[i] === 0) {
+            if (current[i] === 1) decay[i] = DECAY_STEPS;
+            else if (decay[i] > 0) decay[i]--;
+          } else {
+            decay[i] = 0;
+          }
+        }
         // swap buffers
         const tmp = current;
         current = next;
         next = tmp;
         lastTick = ts;
+        gen++;
+        genCounter.textContent = 'GEN ' + gen;
         dirty = true;
       }
       if (dirty) { render(); dirty = false; }
       requestAnimationFrame(loop);
     }
+
+    let startScreenVisible = true;
+
+    function randomSeed(density = 0.3) {
+      for (let i = 0; i < current.length; i++) {
+        current[i] = Math.random() < density ? 1 : 0;
+      }
+      dirty = true;
+    }
+    randomSeed(0.08);
+
+    const startScreen = document.getElementById('start-screen');
+
+    function beginGame() {
+      if (!startScreenVisible) return;
+      startScreen.style.opacity = '0';
+      startScreen.style.pointerEvents = 'none';
+      startScreenVisible = false;
+      helpVisible = true;
+      deathOrder = buildDeathOrder();
+      deathProgress = 0;
+      requestAnimationFrame(ts => { wipeStartTime = ts; });
+      gen = 0;
+      genCounter.textContent = 'GEN 0';
+      freehandBtn.classList.add('active');
+      setTimeout(() => {
+        stampBar.style.transform = 'translateY(0)';
+        stampBar.style.pointerEvents = 'auto';
+      }, 700);
+      setTimeout(() => {
+        overlay.style.transform = 'translateY(0)';
+      }, 1000);
+    }
+
+    function restartGame() {
+      current.fill(0);
+      next.fill(0);
+      decay.fill(0);
+      ghostCells = [];
+      activePattern = null;
+      wipeStartTime = null;
+      deathOrder = null;
+      gen = 0;
+      genCounter.textContent = 'GEN 0';
+      dirty = true;
+      helpVisible = false;
+      startScreenVisible = true;
+      stampBar.style.transform = 'translateY(100%)';
+      stampBar.style.pointerEvents = 'none';
+      overlay.style.transform = 'translateY(-100%)';
+      startScreen.style.opacity = '1';
+      startScreen.style.pointerEvents = '';
+      document.querySelectorAll('.stamp-btn').forEach(b => b.classList.remove('active'));
+      selectTool(0);
+      randomSeed(0.08);
+    }
+
+    document.getElementById('begin-btn').addEventListener('click', beginGame);
+    document.addEventListener('keydown', e => { if (startScreenVisible) beginGame(); });
 
     let dragging = false;
     let drawMode = 1; // 1 = draw, 0 = erase
@@ -293,7 +716,19 @@
       return { r, c, valid: r >= 0 && r < ROWS && c >= 0 && c < COLS };
     }
 
+    let pausedBeforeDraw = false;
+    let freehandUseCount = 0;
+    const tabHint = document.getElementById('tab-hint');
+    let tabHintTimer = null;
+
+    function showTabHint() {
+      tabHint.classList.add('visible');
+      clearTimeout(tabHintTimer);
+      tabHintTimer = setTimeout(() => tabHint.classList.remove('visible'), 4000);
+    }
+
     field.addEventListener('mousedown', e => {
+      if (startScreenVisible) return;
       if (activePattern) {
         e.preventDefault();
         ghostCells.forEach(({ r, c }) => { current[r * COLS + c] = 1; });
@@ -302,32 +737,64 @@
       }
       e.preventDefault();
       dragging = true;
+      pausedBeforeDraw = paused;
+      paused = true;
       drawMode = e.button === 2 ? 0 : 1;
       const { r, c, valid } = cellAt(e);
       if (valid) { current[r * COLS + c] = drawMode; dirty = true; }
+      if (interactionMode === 'draw') {
+        freehandUseCount++;
+        if (freehandUseCount === 2) showTabHint();
+      }
     });
 
+    let ghostHideTimer = null;
+    let lastMouseR = Math.floor(ROWS / 2);
+    let lastMouseC = Math.floor(COLS / 2);
+
+    function updateGhost() {
+      if (!activePattern) return;
+      ghostCells = activePattern.cells
+        .map(([dr, dc]) => ({ r: lastMouseR + dr, c: lastMouseC + dc }))
+        .filter(({ r, c }) => r >= 0 && r < ROWS && c >= 0 && c < COLS);
+      dirty = true;
+    }
+
     field.addEventListener('mousemove', e => {
+      const { r, c } = cellAt(e);
+      lastMouseR = r;
+      lastMouseC = c;
       if (activePattern) {
-        const { r, c } = cellAt(e);
-        ghostCells = activePattern.cells
-          .map(([dr, dc]) => ({ r: r + dr, c: c + dc }))
-          .filter(({ r, c }) => r >= 0 && r < ROWS && c >= 0 && c < COLS);
-        dirty = true;
+        updateGhost();
+        clearTimeout(ghostHideTimer);
+        ghostHideTimer = setTimeout(() => { ghostCells = []; dirty = true; }, 1000);
       }
       if (!dragging) return;
-      const { r, c, valid } = cellAt(e);
-      if (valid) { current[r * COLS + c] = drawMode; dirty = true; }
+      if (c >= 0 && c < COLS && r >= 0 && r < ROWS) { current[r * COLS + c] = drawMode; dirty = true; }
     });
 
     field.addEventListener('mouseleave', () => {
+      clearTimeout(ghostHideTimer);
       if (activePattern) { ghostCells = []; dirty = true; }
     });
 
-    window.addEventListener('mouseup', () => { dragging = false; });
+    window.addEventListener('mouseup', () => {
+      if (dragging) { paused = pausedBeforeDraw; }
+      dragging = false;
+    });
     field.addEventListener('contextmenu', e => e.preventDefault());
 
+    const stampBar = document.getElementById('stamp-bar');
+    let helpVisible = false;
+
     document.addEventListener('keydown', e => {
+      if (startScreenVisible) return;
+      if (e.code === 'KeyH') {
+        helpVisible = !helpVisible;
+        overlay.style.transform = helpVisible ? 'translateY(0)' : 'translateY(-100%)';
+        stampBar.style.transform = helpVisible ? 'translateY(0)' : 'translateY(100%)';
+        stampBar.style.pointerEvents = helpVisible ? 'auto' : 'none';
+      }
       if (e.code === 'Space') {
         e.preventDefault();
         paused = !paused;
@@ -335,40 +802,81 @@
       if (e.code === 'KeyR') {
         current.fill(0);
         next.fill(0);
+        decay.fill(0);
         ghostCells = [];
+        gen = 0;
+        genCounter.textContent = 'GEN 0';
         dirty = true;
       }
-      if (e.code === 'Escape' && activePattern) {
+      if (e.code === 'Escape') {
+        restartGame();
+      }
+    });
+
+
+    const freehandBtn = document.getElementById('freehand-btn');
+    let interactionMode = 'draw'; // 'draw' | 'stamp'
+
+    function setMode(mode) {
+      interactionMode = mode;
+      if (mode === 'draw') {
         activePattern = null;
         ghostCells = [];
         dirty = true;
         document.querySelectorAll('.stamp-btn').forEach(b => b.classList.remove('active'));
-        stampHint.classList.remove('visible');
+        freehandBtn.classList.add('active');
+        field.style.cursor = 'crosshair';
+      } else {
+        freehandBtn.classList.remove('active');
+        field.style.cursor = 'cell';
       }
-    });
+    }
 
-    document.addEventListener('mousemove', e => {
-      overlay.style.opacity = e.clientY < 60 ? '1' : '0';
-    });
+    const allTools = [freehandBtn, ...document.querySelectorAll('.stamp-btn[data-pattern]')];
+    let currentToolIndex = 0;
 
-    const stampHint = document.getElementById('stamp-hint');
+    function selectTool(index) {
+      currentToolIndex = ((index % allTools.length) + allTools.length) % allTools.length;
+      const btn = allTools[currentToolIndex];
+      if (btn === freehandBtn) {
+        setMode('draw');
+      } else {
+        setMode('stamp');
+        activePattern = PATTERNS[btn.dataset.pattern];
+        document.querySelectorAll('.stamp-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        updateGhost();
+      }
+    }
 
-    document.querySelectorAll('.stamp-btn').forEach(btn => {
+    freehandBtn.addEventListener('click', () => selectTool(0));
+
+    document.querySelectorAll('.stamp-btn[data-pattern]').forEach((btn, i) => {
       btn.addEventListener('click', () => {
-        const key = btn.dataset.pattern;
-        if (activePattern === PATTERNS[key]) {
-          activePattern = null;
-          ghostCells = [];
-          dirty = true;
-          document.querySelectorAll('.stamp-btn').forEach(b => b.classList.remove('active'));
-          stampHint.classList.remove('visible');
+        if (interactionMode === 'stamp' && activePattern === PATTERNS[btn.dataset.pattern]) {
+          selectTool(0);
         } else {
-          activePattern = PATTERNS[key];
-          document.querySelectorAll('.stamp-btn').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          stampHint.classList.add('visible');
+          selectTool(i + 1);
         }
       });
+    });
+
+    document.addEventListener('keydown', e => {
+      if (startScreenVisible) return;
+      if (e.code === 'ArrowRight' || e.code === 'Tab') {
+        e.preventDefault();
+        clearTimeout(tabHintTimer);
+        tabHint.classList.remove('visible');
+        selectTool(currentToolIndex + 1);
+      }
+      if (e.code === 'ArrowLeft') {
+        e.preventDefault();
+        clearTimeout(tabHintTimer);
+        tabHint.classList.remove('visible');
+        selectTool(currentToolIndex - 1);
+      }
+      const digit = e.code.match(/^Digit([1-9])$/);
+      if (digit) selectTool(parseInt(digit[1]) - 1);
     });
 
     requestAnimationFrame(loop);
