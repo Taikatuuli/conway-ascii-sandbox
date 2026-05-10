@@ -4,6 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Conway ASCII Sandbox</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <meta property="og:title" content="Conway ASCII Sandbox">
+  <meta property="og:description" content="A simulation where cells emerge and fade by simple rules — yet produce endless complexity.">
+  <meta property="og:image" content="/og.png">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="/og.png">
   <script defer src="/_vercel/insights/script.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -253,7 +260,7 @@
       <div class="ascii-hr"><span class="ascii-hr-fill">------------------------------------------------------------------------</span></div>
       <div class="ascii-section">
         <div class="ascii-section-inner start-rules">
-          A simulation where cells live and die by simple rules — yet produce endless complexity. It is not a game you win. It is a world you observe.
+          A simulation where cells emerge and fade by simple rules — yet produce endless complexity. It is not a game you win. It is a world you observe.
         </div>
       </div>
       <div class="ascii-hr"><span class="ascii-hr-fill">------------------------------------------------------------------------</span></div>
@@ -267,7 +274,7 @@
       <div class="ascii-hr"><span class="ascii-hr-fill">------------------------------------------------------------------------</span></div>
       <div class="ascii-section">
         <div class="ascii-section-inner" style="text-align: center;">
-          <button type="button" id="begin-btn">[ PRESS ANY KEY TO START ]</button>
+          <button type="button" id="begin-btn">[ PRESS ENTER TO START ]</button>
         </div>
       </div>
       <div class="ascii-hr"><span class="ascii-hr-fill">------------------------------------------------------------------------</span></div>
@@ -690,6 +697,8 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
       activePattern = null;
       wipeStartTime = null;
       deathOrder = null;
+      paused = false;
+      dragging = false;
       gen = 0;
       genCounter.textContent = 'GEN 0';
       dirty = true;
@@ -706,7 +715,11 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
     }
 
     document.getElementById('begin-btn').addEventListener('click', beginGame);
-    document.addEventListener('keydown', e => { if (startScreenVisible) beginGame(); });
+    document.addEventListener('keydown', e => {
+      if (!startScreenVisible) return;
+      if (e.code === 'Escape') { e.preventDefault(); return; }
+      if (e.code === 'Enter') beginGame();
+    });
 
     let dragging = false;
     let drawMode = 1; // 1 = draw, 0 = erase

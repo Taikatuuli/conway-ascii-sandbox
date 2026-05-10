@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 1200px;
+      height: 630px;
+      background: #000;
+      font-family: 'Courier New', Courier, monospace;
+      overflow: hidden;
+    }
+
+    /* ASCII field background */
+    #bg {
+      position: absolute;
+      inset: 0;
+      font-size: 11px;
+      line-height: 0.63em;
+      color: #1a1a1a;
+      white-space: pre;
+      padding: 4px;
+      overflow: hidden;
+    }
+
+    /* Center panel */
+    #panel {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 560px;
+      font-size: 13px;
+      line-height: 1.8;
+      letter-spacing: 0.5px;
+    }
+
+    .hr {
+      display: flex;
+      color: #555;
+    }
+    .hr::before, .hr::after { content: '+'; flex-shrink: 0; }
+    .hr-fill { flex: 1; overflow: hidden; white-space: nowrap; color: #555; }
+
+    .section-inner {
+      padding: 16px 20px;
+      border-left: 1px solid #555;
+      border-right: 1px solid #555;
+    }
+
+    #title {
+      color: #ffffff;
+      font-size: 20px;
+      letter-spacing: 4px;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+
+    #subtitle {
+      color: #888;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-align: center;
+    }
+
+    .desc {
+      color: #cccccc;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div id="bg"></div>
+  <div id="panel">
+    <div class="hr"><span class="hr-fill">----------------------------------------------------------------</span></div>
+    <div class="section-inner">
+      <div id="title">CONWAY ASCII SANDBOX</div>
+      <div id="subtitle">a cellular automaton by John Horton Conway, 1970</div>
+    </div>
+    <div class="hr"><span class="hr-fill">----------------------------------------------------------------</span></div>
+    <div class="section-inner desc">
+      A simulation where cells emerge and fade by simple rules —<br>
+      yet produce endless complexity.
+    </div>
+    <div class="hr"><span class="hr-fill">----------------------------------------------------------------</span></div>
+    <div class="section-inner desc" style="color:#888; font-size:11px; letter-spacing:1px;">
+      · select a tool &nbsp;· draw or stamp patterns &nbsp;· watch complexity emerge
+    </div>
+    <div class="hr"><span class="hr-fill">----------------------------------------------------------------</span></div>
+  </div>
+
+  <script>
+    // Fill background with scattered + and · chars
+    const bg = document.getElementById('bg');
+    const cols = Math.ceil(1200 / 6.6);
+    const rows = Math.ceil(630 / 6.93);
+    const chars = [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '+', '·'];
+    let out = '';
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        out += chars[Math.floor(Math.random() * chars.length)];
+      }
+      out += '\n';
+    }
+    bg.textContent = out;
+  </script>
+</body>
+</html>
