@@ -172,6 +172,33 @@
       requestAnimationFrame(loop);
     }
 
+    let dragging = false;
+    let drawMode = 1; // 1 = draw, 0 = erase
+
+    function cellAt(e) {
+      const c = Math.floor(e.clientX / charW);
+      const r = Math.floor(e.clientY / charH);
+      return { r, c, valid: r >= 0 && r < ROWS && c >= 0 && c < COLS };
+    }
+
+    field.addEventListener('mousedown', e => {
+      e.preventDefault();
+      dragging = true;
+      drawMode = e.button === 2 ? 0 : 1;
+      const { r, c, valid } = cellAt(e);
+      if (valid) current[r * COLS + c] = drawMode;
+    });
+
+    field.addEventListener('mousemove', e => {
+      if (!dragging) return;
+      const { r, c, valid } = cellAt(e);
+      if (valid) current[r * COLS + c] = drawMode;
+    });
+
+    window.addEventListener('mouseup', () => { dragging = false; });
+    field.addEventListener('mouseleave', () => { dragging = false; });
+    field.addEventListener('contextmenu', e => e.preventDefault());
+
     requestAnimationFrame(loop);
   </script>
 </body>
