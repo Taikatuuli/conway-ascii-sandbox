@@ -199,6 +199,21 @@
     field.addEventListener('mouseleave', () => { dragging = false; });
     field.addEventListener('contextmenu', e => e.preventDefault());
 
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        paused = !paused;
+      }
+      if (e.code === 'KeyR') {
+        current.fill(0);
+        next.fill(0);
+      }
+    });
+
+    document.addEventListener('mousemove', e => {
+      overlay.style.opacity = e.clientY < 60 ? '1' : '0';
+    });
+
     requestAnimationFrame(loop);
   </script>
 </body>
