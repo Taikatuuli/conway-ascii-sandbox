@@ -155,8 +155,24 @@
       field.innerHTML = parts.join('');
     }
 
-    // Smoke test: render a blank grid
-    render();
+    let paused = false;
+    let lastTick = 0;
+    const TICK_MS = 100;
+
+    function loop(ts) {
+      if (!paused && ts - lastTick >= TICK_MS) {
+        nextGen(current, next, COLS, ROWS);
+        // swap buffers
+        const tmp = current;
+        current = next;
+        next = tmp;
+        lastTick = ts;
+      }
+      render();
+      requestAnimationFrame(loop);
+    }
+
+    requestAnimationFrame(loop);
   </script>
 </body>
 </html>
