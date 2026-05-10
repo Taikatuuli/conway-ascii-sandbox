@@ -158,6 +158,7 @@
     let paused = false;
     let lastTick = 0;
     const TICK_MS = 100;
+    let dirty = true;
 
     function loop(ts) {
       if (!paused && ts - lastTick >= TICK_MS) {
@@ -167,8 +168,9 @@
         current = next;
         next = tmp;
         lastTick = ts;
+        dirty = true;
       }
-      render();
+      if (dirty) { render(); dirty = false; }
       requestAnimationFrame(loop);
     }
 
@@ -186,17 +188,16 @@
       dragging = true;
       drawMode = e.button === 2 ? 0 : 1;
       const { r, c, valid } = cellAt(e);
-      if (valid) current[r * COLS + c] = drawMode;
+      if (valid) { current[r * COLS + c] = drawMode; dirty = true; }
     });
 
     field.addEventListener('mousemove', e => {
       if (!dragging) return;
       const { r, c, valid } = cellAt(e);
-      if (valid) current[r * COLS + c] = drawMode;
+      if (valid) { current[r * COLS + c] = drawMode; dirty = true; }
     });
 
     window.addEventListener('mouseup', () => { dragging = false; });
-    field.addEventListener('mouseleave', () => { dragging = false; });
     field.addEventListener('contextmenu', e => e.preventDefault());
 
     document.addEventListener('keydown', e => {
