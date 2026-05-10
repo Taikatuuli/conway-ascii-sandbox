@@ -326,6 +326,26 @@
       overlay.style.opacity = e.clientY < 60 ? '1' : '0';
     });
 
+    const stampHint = document.getElementById('stamp-hint');
+
+    document.querySelectorAll('.stamp-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.pattern;
+        if (activePattern === PATTERNS[key]) {
+          activePattern = null;
+          ghostCells = [];
+          dirty = true;
+          document.querySelectorAll('.stamp-btn').forEach(b => b.classList.remove('active'));
+          stampHint.classList.remove('visible');
+        } else {
+          activePattern = PATTERNS[key];
+          document.querySelectorAll('.stamp-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          stampHint.classList.add('visible');
+        }
+      });
+    });
+
     requestAnimationFrame(loop);
   </script>
 </body>
