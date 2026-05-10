@@ -40,12 +40,68 @@
       pointer-events: none;
       letter-spacing: 1px;
     }
+
+    #stamp-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: rgba(13,10,0,0.95);
+      border-top: 1px solid #332200;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      padding: 6px 12px;
+      font-family: 'Courier New', Courier, monospace;
+      z-index: 6;
+    }
+
+    #stamp-label {
+      color: #443300;
+      font-size: 10px;
+      letter-spacing: 1px;
+      margin-right: 8px;
+    }
+
+    .stamp-btn {
+      border: 1px solid #443300;
+      background: none;
+      color: #664400;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      padding: 4px 12px;
+      cursor: pointer;
+    }
+
+    .stamp-btn.active {
+      border-color: #ffcc44;
+      color: #ffcc44;
+      background: rgba(255,204,68,0.08);
+    }
+
+    #stamp-hint {
+      color: #332200;
+      font-size: 10px;
+      margin-left: 12px;
+      display: none;
+    }
+
+    #stamp-hint.visible {
+      display: inline;
+    }
   </style>
 </head>
 <body>
   <pre id="field"></pre>
   <div id="overlay">
     [SPACE] pause · [R] clear · left-drag draw · right-drag erase
+  </div>
+  <div id="stamp-bar">
+    <span id="stamp-label">STAMPS</span>
+    <button class="stamp-btn" data-pattern="glider">GLIDER</button>
+    <button class="stamp-btn" data-pattern="blinker">BLINKER</button>
+    <button class="stamp-btn" data-pattern="pulsar">PULSAR</button>
+    <button class="stamp-btn" data-pattern="gosper">GOSPER GUN</button>
+    <span id="stamp-hint">ESC to cancel</span>
   </div>
   <script>
     const field = document.getElementById('field');
