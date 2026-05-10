@@ -208,9 +208,14 @@
     }
 
     function render() {
+      const ghostSet = new Set(ghostCells.map(({ r, c }) => r * COLS + c));
       const parts = [];
       for (let r = 0; r < ROWS; r++) {
         for (let c = 0; c < COLS; c++) {
+          if (ghostSet.has(r * COLS + c)) {
+            parts.push('<span style="color:#cc9922">█</span>');
+            continue;
+          }
           const alive = current[r * COLS + c];
           const n = countNeighbors(current, r, c);
           const { ch, color } = charFor(alive, n);
