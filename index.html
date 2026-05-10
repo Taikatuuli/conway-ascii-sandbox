@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Conway ASCII Sandbox</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0d0a00;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #field {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 14px;
+      line-height: 1.4;
+      color: #221800;
+      white-space: pre;
+      cursor: crosshair;
+      user-select: none;
+    }
+
+    #overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      padding: 8px 16px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 12px;
+      color: #555;
+      opacity: 0;
+      transition: opacity 300ms;
+      pointer-events: none;
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+  <pre id="field"></pre>
+  <div id="overlay">
+    [SPACE] pause · [R] clear · left-drag draw · right-drag erase
+  </div>
+  <script>
+    // implementation goes here
+  </script>
+</body>
+</html>
