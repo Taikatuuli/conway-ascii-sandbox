@@ -48,7 +48,26 @@
     [SPACE] pause · [R] clear · left-drag draw · right-drag erase
   </div>
   <script>
-    // implementation goes here
+    const field = document.getElementById('field');
+    const overlay = document.getElementById('overlay');
+
+    // Measure a single character's rendered size
+    const probe = document.createElement('pre');
+    probe.style.cssText = 'position:absolute;visibility:hidden;white-space:pre;font-family:"Courier New",Courier,monospace;font-size:14px;line-height:1.4';
+    probe.textContent = 'X';
+    document.body.appendChild(probe);
+    const charW = probe.getBoundingClientRect().width;
+    const charH = probe.getBoundingClientRect().height;
+    document.body.removeChild(probe);
+
+    const COLS = Math.floor(window.innerWidth / charW);
+    const ROWS = Math.floor(window.innerHeight / charH);
+
+    let current = new Uint8Array(COLS * ROWS);
+    let next    = new Uint8Array(COLS * ROWS);
+
+    // Smoke test: log dimensions
+    console.log(`Grid: ${COLS} cols × ${ROWS} rows, char: ${charW.toFixed(2)}×${charH.toFixed(2)}px`);
   </script>
 </body>
 </html>
