@@ -68,6 +68,55 @@
 
     // Smoke test: log dimensions
     console.log(`Grid: ${COLS} cols × ${ROWS} rows, char: ${charW.toFixed(2)}×${charH.toFixed(2)}px`);
+
+    function nextGen(src, dst, cols, rows) {
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          let n = 0;
+          for (let dr = -1; dr <= 1; dr++) {
+            for (let dc = -1; dc <= 1; dc++) {
+              if (dr === 0 && dc === 0) continue;
+              n += src[((r + dr + rows) % rows) * cols + ((c + dc + cols) % cols)];
+            }
+          }
+          const alive = src[r * cols + c];
+          dst[r * cols + c] = alive ? (n === 2 || n === 3 ? 1 : 0) : (n === 3 ? 1 : 0);
+        }
+      }
+    }
+
+    // Unit tests for nextGen
+    (function testNextGen() {
+      // Test: isolated live cell dies
+      const g1 = new Uint8Array(9); // 3×3
+      g1[4] = 1; // center alive, no neighbors
+      const d1 = new Uint8Array(9);
+      nextGen(g1, d1, 3, 3);
+      console.assert(d1[4] === 0, 'isolated cell should die');
+
+      // Test: dead cell with exactly 3 neighbors is born
+      const g2 = new Uint8Array(9); // 3×3
+      g2[0] = 1; g2[1] = 1; g2[3] = 1; // three neighbors around center
+      const d2 = new Uint8Array(9);
+      nextGen(g2, d2, 3, 3);
+      console.assert(d2[4] === 1, 'dead cell with 3 neighbors should be born');
+
+      // Test: live cell with 2 neighbors survives
+      const g3 = new Uint8Array(9);
+      g3[4] = 1; g3[0] = 1; g3[1] = 1; // center + 2 neighbors
+      const d3 = new Uint8Array(9);
+      nextGen(g3, d3, 3, 3);
+      console.assert(d3[4] === 1, 'live cell with 2 neighbors should survive');
+
+      // Test: live cell with 4 neighbors dies (overcrowding)
+      const g4 = new Uint8Array(9);
+      g4[4] = 1; g4[0] = 1; g4[1] = 1; g4[2] = 1; g4[3] = 1;
+      const d4 = new Uint8Array(9);
+      nextGen(g4, d4, 3, 3);
+      console.assert(d4[4] === 0, 'live cell with 4 neighbors should die');
+
+      console.log('nextGen tests passed');
+    })();
   </script>
 </body>
 </html>
