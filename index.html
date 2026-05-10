@@ -294,6 +294,12 @@
     }
 
     field.addEventListener('mousedown', e => {
+      if (activePattern) {
+        e.preventDefault();
+        ghostCells.forEach(({ r, c }) => { current[r * COLS + c] = 1; });
+        dirty = true;
+        return;
+      }
       e.preventDefault();
       dragging = true;
       drawMode = e.button === 2 ? 0 : 1;
@@ -302,9 +308,20 @@
     });
 
     field.addEventListener('mousemove', e => {
+      if (activePattern) {
+        const { r, c } = cellAt(e);
+        ghostCells = activePattern.cells
+          .map(([dr, dc]) => ({ r: r + dr, c: c + dc }))
+          .filter(({ r, c }) => r >= 0 && r < ROWS && c >= 0 && c < COLS);
+        dirty = true;
+      }
       if (!dragging) return;
       const { r, c, valid } = cellAt(e);
       if (valid) { current[r * COLS + c] = drawMode; dirty = true; }
+    });
+
+    field.addEventListener('mouseleave', () => {
+      if (activePattern) { ghostCells = []; dirty = true; }
     });
 
     window.addEventListener('mouseup', () => { dragging = false; });
@@ -318,7 +335,15 @@
       if (e.code === 'KeyR') {
         current.fill(0);
         next.fill(0);
+        ghostCells = [];
         dirty = true;
+      }
+      if (e.code === 'Escape' && activePattern) {
+        activePattern = null;
+        ghostCells = [];
+        dirty = true;
+        document.querySelectorAll('.stamp-btn').forEach(b => b.classList.remove('active'));
+        stampHint.classList.remove('visible');
       }
     });
 
