@@ -287,7 +287,7 @@
     #start-panel {
       background: rgba(0,0,0,0.92);
       padding: 0;
-      max-width: 420px;
+      max-width: 480px;
       width: 100%;
       font-family: 'Courier New', Courier, monospace;
       font-size: 12px;
@@ -429,7 +429,7 @@
     }
 
     .github-link {
-      color: #cccccc;
+      color: #888888;
       text-decoration: none;
       font-family: 'Courier New', monospace;
       font-size: 12px;
@@ -464,9 +464,6 @@
       background: none;
     }
 
-    #begin-btn:active {
-      transform: scale(0.97);
-    }
   </style>
 </head>
 <body>
@@ -488,6 +485,7 @@
           <ul class="start-list">
             <li>Create a starting pattern of cells by drawing or placing a pre-made pattern on the canvas.</li>
             <li>As the simulation runs, cells appear and fade based on the simulation rules.</li>
+            <li>Press Space to pause the simulation. You can draw and place patterns while paused or while the simulation is running.</li>
           </ul>
           <details id="rules-details">
             <summary>Simulation rules</summary>
@@ -513,14 +511,14 @@
         </div>
       </div>
       <div class="ascii-hr"><span class="ascii-hr-fill">--------------------------------------------------------------------------------</span></div>
-      <div style="text-align: center; padding: 6px 12px; color: #cccccc; font-family: 'Courier New', monospace; font-size: 12px; letter-spacing: 1px;">
+      <div style="text-align: center; padding: 6px 12px; color: #888888; font-family: 'Courier New', monospace; font-size: 12px; letter-spacing: 1px;">
         Made by <a href="https://www.venlainkari.com/" target="_blank" rel="noopener" class="github-link">@venla.ink</a>
       </div>
     </div>
   </div>
-  <div id="draw-hint">draw a straight line</div>
-  <div id="tab-hint">Use arrow keys ← → to select patterns</div>
-  <div id="mobile-clear-hint">double tap with two fingers to clear canvas</div>
+  <div id="draw-hint">Hint: Click and drag to draw cells</div>
+  <div id="tab-hint">Hint: Use ← → to switch tools</div>
+  <div id="mobile-clear-hint">Hint: Double tap with two fingers to clear</div>
   <div id="overlay">
     <span id="overlay-controls">
       <button class="overlay-btn" id="btn-cycle">[← →] select tool</button> ·
@@ -533,7 +531,7 @@
   </div>
   <div id="stamp-bar">
     <button type="button" id="toolbar-toggle">▲ tools</button>
-    <button type="button" class="stamp-btn" id="freehand-btn">FREE HAND</button>
+    <button type="button" class="stamp-btn" id="freehand-btn">DRAW</button>
     <button type="button" class="stamp-btn" data-pattern="blinker">BLINKER</button>
     <button type="button" class="stamp-btn" data-pattern="glider">GLIDER</button>
     <button type="button" class="stamp-btn" data-pattern="pulsar">PULSAR</button>
