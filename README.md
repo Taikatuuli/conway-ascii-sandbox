@@ -20,5 +20,5 @@ Made by [@venla.ink](https://www.venlainkari.com/)
 
 - Conway's Game of Life — [Wikipedia](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life)
 - John Horton Conway — [Wikipedia](https://en.wikipedia.org/wiki/John_Horton_Conway)
-- Gosper Glider Gun pattern — Bill Gosper, 1970
 - Bresenham's line algorithm — [Wikipedia](https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm)
+- Pattern reference — [LifeWiki](https://conwaylife.com/wiki/)
