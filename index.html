@@ -36,6 +36,7 @@
       white-space: pre;
       cursor: crosshair;
       user-select: none;
+      opacity: 0.80;
     }
 
     #overlay {
@@ -76,6 +77,11 @@
 
     .overlay-btn:hover {
       color: #ffffff;
+    }
+
+    .overlay-btn:focus-visible {
+      outline: 1px dashed #ffffff;
+      outline-offset: 2px;
     }
 
     #top-trigger {
@@ -150,6 +156,26 @@
         transition: opacity 350ms;
         white-space: nowrap;
       }
+    }
+
+    #draw-hint {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 20px;
+      color: #ffffff;
+      letter-spacing: 3px;
+      pointer-events: none;
+      z-index: 11;
+      opacity: 0;
+      transition: opacity 600ms;
+      white-space: nowrap;
+    }
+
+    #draw-hint.visible {
+      opacity: 1;
     }
 
     #tab-hint {
@@ -343,6 +369,18 @@
       color: #ffffff;
     }
 
+    .github-link {
+      color: #555555;
+      text-decoration: none;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      letter-spacing: 1px;
+    }
+
+    .github-link:hover {
+      color: #ffffff;
+    }
+
     #begin-btn {
       display: block;
       margin: 0 auto;
@@ -383,15 +421,16 @@
       <div class="ascii-hr"><span class="ascii-hr-fill">------------------------------------------------------------------------</span></div>
       <div class="ascii-section">
         <div class="ascii-section-inner start-rules">
-          Game of Life is a simulation where simple rules create complex, evolving patterns. You create a starting pattern and watch it change across generations.<sup><a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life" target="_blank" rel="noopener" id="source-link">1</a></sup>
+          Game of Life is a non-player simulation where simple rules create complex, evolving patterns.<sup><a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life" target="_blank" rel="noopener" id="source-link">1</a></sup> You create a starting pattern and watch it evolve across generations.
         </div>
       </div>
       <div class="ascii-hr"><span class="ascii-hr-fill">------------------------------------------------------------------------</span></div>
       <div class="ascii-section">
         <div class="ascii-section-inner start-rules">
-          Instructions:<br>
-          · Draw freely or place preset patterns.<br>
-          · Watch complexity emerge.
+          How it works:<br>
+          · Draw freely or place preset pattern to the canvas.<br>
+          · Watch complexity emerge.<br>
+          · Note that this game contains flashing patterns.
         </div>
       </div>
       <div class="ascii-hr"><span class="ascii-hr-fill">------------------------------------------------------------------------</span></div>
@@ -402,11 +441,12 @@
       </div>
       <div class="ascii-hr"><span class="ascii-hr-fill">------------------------------------------------------------------------</span></div>
       <div style="text-align: right; padding: 6px 12px;">
-        <a href="https://github.com/Taikatuuli" target="_blank" rel="noopener" style="color: #555555; text-decoration: none; font-family: 'Courier New', monospace; font-size: 12px; letter-spacing: 1px;">@Taikatuuli</a>
+        <a href="https://github.com/Taikatuuli" target="_blank" rel="noopener" class="github-link">@Taikatuuli</a>
       </div>
     </div>
   </div>
-  <div id="tab-hint">press [← →] to try different patterns</div>
+  <div id="draw-hint">draw a straight line</div>
+  <div id="tab-hint">Use arrow keys ← → to select patterns</div>
   <div id="mobile-clear-hint">double tap with two fingers to clear canvas</div>
   <div id="overlay">
     <span id="overlay-controls">
@@ -767,7 +807,7 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
         dirty = true;
         if (progress >= 1) { next.fill(0); wipeStartTime = null; deathOrder = null; }
       }
-      if (!paused && wipeStartTime === null && ts - lastTick >= TICK_MS) {
+      if (!paused && wipeStartTime === null && ts - lastTick >= (TICK_MS)) {
         nextGen(current, next, COLS, ROWS);
         for (let i = 0; i < current.length; i++) {
           if (next[i] === 0) {
@@ -826,6 +866,9 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
       setTimeout(() => {
         overlay.style.transform = 'translateY(0)';
       }, 1000);
+      setTimeout(() => {
+        drawHint.classList.add('visible');
+      }, 1400);
     }
 
     function restartGame() {
@@ -851,6 +894,7 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
       toolbarToggle.textContent = '▲ tools';
       toolbarOpen = false;
       mobileDrawCount = 0;
+      drawHint.classList.remove('visible');
       mobileClearHint.classList.remove('visible');
       startScreen.style.opacity = '1';
       startScreen.style.pointerEvents = '';
@@ -875,8 +919,30 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
       return { r, c, valid: r >= 0 && r < ROWS && c >= 0 && c < COLS };
     }
 
+    let lastDrawR = -1;
+    let lastDrawC = -1;
+
+    function snapCell(r, c) {
+      return { r: Math.floor(r / 2) * 2, c: Math.floor(c / 2) * 2 };
+    }
+
+    function drawLine(r0, c0, r1, c1, mode) {
+      const dr = Math.abs(r1 - r0), dc = Math.abs(c1 - c0);
+      const sr = r0 < r1 ? 1 : -1, sc = c0 < c1 ? 1 : -1;
+      let err = dr - dc, r = r0, c = c0;
+      while (true) {
+        if (r >= 0 && r < ROWS && c >= 0 && c < COLS) current[r * COLS + c] = mode;
+        if (r === r1 && c === c1) break;
+        const e2 = 2 * err;
+        if (e2 > -dc) { err -= dc; r += sr; }
+        if (e2 < dr)  { err += dr;  c += sc; }
+      }
+    }
+
     let pausedBeforeDraw = false;
     let freehandUseCount = 0;
+    const drawHint = document.getElementById('draw-hint');
+
     const tabHint = document.getElementById('tab-hint');
     let tabHintTimer = null;
 
@@ -888,6 +954,7 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
 
     field.addEventListener('mousedown', e => {
       if (startScreenVisible) return;
+      drawHint.classList.remove('visible');
       if (activePattern) {
         e.preventDefault();
         ghostCells.forEach(({ r, c }) => { current[r * COLS + c] = 1; });
@@ -899,8 +966,10 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
       pausedBeforeDraw = paused;
       paused = true;
       drawMode = e.button === 2 ? 0 : 1;
-      const { r, c, valid } = cellAt(e);
-      if (valid) { current[r * COLS + c] = drawMode; dirty = true; }
+      const raw = cellAt(e);
+      const { r, c } = snapCell(raw.r, raw.c);
+      if (raw.valid) { current[r * COLS + c] = drawMode; dirty = true; }
+      lastDrawR = r; lastDrawC = c;
       if (interactionMode === 'draw') {
         freehandUseCount++;
         if (freehandUseCount === 2) showTabHint();
@@ -929,7 +998,9 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
         ghostHideTimer = setTimeout(() => { ghostCells = []; dirty = true; }, 1000);
       }
       if (!dragging) return;
-      if (c >= 0 && c < COLS && r >= 0 && r < ROWS) { current[r * COLS + c] = drawMode; dirty = true; }
+      const { r: sr, c: sc } = snapCell(r, c);
+      if (lastDrawR >= 0) { drawLine(lastDrawR, lastDrawC, sr, sc, drawMode); dirty = true; }
+      lastDrawR = sr; lastDrawC = sc;
     });
 
     field.addEventListener('mouseleave', () => {
@@ -940,6 +1011,7 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
     window.addEventListener('mouseup', () => {
       if (dragging) { paused = pausedBeforeDraw; }
       dragging = false;
+      lastDrawR = -1; lastDrawC = -1;
     });
     field.addEventListener('contextmenu', e => e.preventDefault());
 
@@ -973,6 +1045,7 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
         lastTwoFingerTap = now;
         return;
       }
+      drawHint.classList.remove('visible');
       const touch = e.touches[0];
       const { r, c, valid } = cellAt({ clientX: touch.clientX, clientY: touch.clientY });
       lastMouseR = r; lastMouseC = c;
@@ -990,7 +1063,9 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
       pausedBeforeDraw = paused;
       paused = true;
       drawMode = 1;
-      if (valid) { current[r * COLS + c] = 1; dirty = true; }
+      const { r: sr0, c: sc0 } = snapCell(r, c);
+      if (valid) { current[sr0 * COLS + sc0] = 1; dirty = true; }
+      lastDrawR = sr0; lastDrawC = sc0;
       if (interactionMode === 'draw') {
         freehandUseCount++;
         if (freehandUseCount === 2) showTabHint();
@@ -1003,15 +1078,18 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
       e.preventDefault();
       if (startScreenVisible) return;
       const touch = e.touches[0];
-      const { r, c, valid } = cellAt({ clientX: touch.clientX, clientY: touch.clientY });
-      lastMouseR = r; lastMouseC = c;
+      const { r: tr, c: tc } = cellAt({ clientX: touch.clientX, clientY: touch.clientY });
+      lastMouseR = tr; lastMouseC = tc;
       if (!dragging) return;
-      if (valid) { current[r * COLS + c] = drawMode; dirty = true; }
+      const { r: sr, c: sc } = snapCell(tr, tc);
+      if (lastDrawR >= 0) { drawLine(lastDrawR, lastDrawC, sr, sc, drawMode); dirty = true; }
+      lastDrawR = sr; lastDrawC = sc;
     }, { passive: false });
 
     field.addEventListener('touchend', () => {
       if (dragging) { paused = pausedBeforeDraw; }
       dragging = false;
+      lastDrawR = -1; lastDrawC = -1;
     }, { passive: false });
 
     const stampBar = document.getElementById('stamp-bar');
