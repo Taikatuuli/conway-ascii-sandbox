@@ -473,7 +473,7 @@
           Game of Life is a non-player simulation where simple rules create complex, evolving patterns.<sup><a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life" target="_blank" rel="noopener" id="source-link">1</a></sup>
           <details id="rules-details">
             <summary>Simulation rules</summary>
-            <p class="rules-intro">Each step of the simulation is called a generation. All cells update simultaneously based on the following rules:</p>
+            <p class="rules-intro">Each step of the simulation is called a generation. Each generational cycle all cells update simultaneously based on the following rules:</p>
             <ul class="start-list">
               <li>Underpopulation: A live cell with fewer than 2 neighbours dies.</li>
               <li>Survival: A live cell with 2 or 3 neighbours lives on.</li>
@@ -528,7 +528,6 @@
     <button type="button" class="stamp-btn" data-pattern="diamond">DIAMOND</button>
     <button type="button" class="stamp-btn" data-pattern="linepuffer">LINE PUFFER</button>
     <button type="button" class="stamp-btn" data-pattern="spacefiller">SPACEFILLER</button>
-    <button type="button" class="stamp-btn" data-pattern="spacefiller1">SPACEFILLER 1</button>
     <button type="button" class="stamp-btn" data-pattern="barberpole">BARBERPOLE</button>
     <button type="button" class="stamp-btn" data-pattern="scrubber">SCRUBBER</button>
     <button type="button" class="stamp-btn" data-pattern="shipinbottle">SHIP IN BOTTLE</button>
@@ -768,15 +767,6 @@ bobo8bo$12b2o$14bo$13b2o$8b2o5bo$10b3o3bo$6bo3b3o2bo2bo$7bo2b3o6bo$7bo
     PATTERNS.scrubber = { cells: parseRLE(`x = 11, y = 11, rule = B3/S23
 4b2o$4b2o2$4b3o$3bo3bob2o$2obo3bob2o$2obo3bo$4b3o2$5b2o$5b2o!`) };
 
-    PATTERNS.spacefiller1 = { cells: parseRLE(`x = 29, y = 43, rule = b3/s23
-5bobo21b$4bo2bo21b$3b2o24b$2bo26b$b4o24b$o4bo23b$o2bo25b$o2bo25b$bo9b
-3o3b3o9b$2b4obo2bo2bo3bo2bo8b$3bo3bo5bo3bo11b$4bo8bo3bo11b$4bobo6bo3bo
-11b2$3b3o5b3o3b3o9b$3b2o7bo5bo10b$3b3o6b7o10b$11bo7bo9b$4bobo3b11o8b$
-3bo2bo2bo12b2o5b$3bo5b12o3bo4b$3bo3bo13bo3bo3b$4bo3b12o5bo3b$5b2o12bo
-2bo2bo3b$8b11o3bobo4b$9bo7bo11b$10b7o6b3o3b$10bo5bo7b2o3b$9b3o3b3o5b3o
-3b2$11bo3bo6bobo4b$11bo3bo8bo4b$11bo3bo5bo3bo3b$8bo2bo3bo2bo2bob4o2b$
-9b3o3b3o9bob$25bo2bo$25bo2bo$23bo4bo$24b4ob$26bo2b$24b2o3b$21bo2bo4b$
-21bobo!`) };
 
     PATTERNS.shipinbottle = { cells: parseRLE(`x = 18, y = 18, rule = B3/S23
 4b2o6b2o4b$3bo2bo4bo2bo3b$3bobo6bobo3b$b2o2b3o2b3o2b2ob$o6bo2bo6bo$ob
