@@ -374,6 +374,11 @@
       margin-top: 8px;
     }
 
+    .rules-intro {
+      margin: 6px 0 4px 0;
+      color: #cccccc;
+    }
+
     #rules-details summary {
       cursor: pointer;
       list-style: none;
@@ -409,7 +414,7 @@
     }
 
     .github-link {
-      color: #555555;
+      color: #cccccc;
       text-decoration: none;
       font-family: 'Courier New', monospace;
       font-size: 12px;
@@ -425,7 +430,7 @@
       margin: 0 auto;
       border: none;
       background: none;
-      color: #ffffff;
+      color: #cccccc;
       font-family: 'Courier New', Courier, monospace;
       font-size: 12px;
       letter-spacing: 1px;
@@ -440,7 +445,8 @@
     }
 
     #begin-btn:hover {
-      background: rgba(255,255,255,0.15);
+      color: #ffffff;
+      background: none;
     }
   </style>
 </head>
@@ -460,25 +466,25 @@
       <div class="ascii-hr"><span class="ascii-hr-fill">------------------------------------------------------------------------</span></div>
       <div class="ascii-section">
         <div class="ascii-section-inner start-rules">
-          Game of Life is a non-player simulation where simple rules create complex, evolving patterns.<sup><a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life" target="_blank" rel="noopener" id="source-link">1</a></sup><br><br>
+          Game of Life is a non-player simulation where simple rules create complex, evolving patterns.<sup><a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life" target="_blank" rel="noopener" id="source-link">1</a></sup>
           <details id="rules-details">
             <summary>Simulation rules</summary>
+            <p class="rules-intro">Each step of the simulation is called a generation. All cells update simultaneously based on the following rules:</p>
             <ul class="start-list">
-              <li>Underpopulation — A live cell with fewer than 2 neighbours fades.</li>
-              <li>Survival — A live cell with 2 or 3 neighbours lives on.</li>
-              <li>Overpopulation — A live cell with more than 3 neighbours fades.</li>
-              <li>Reproduction — A dead cell with exactly 3 neighbours becomes alive.</li>
+              <li>Underpopulation: A live cell with fewer than 2 neighbours dies.</li>
+              <li>Survival: A live cell with 2 or 3 neighbours lives on.</li>
+              <li>Overpopulation: A live cell with more than 3 neighbours dies.</li>
+              <li>Reproduction: A dead cell with exactly 3 neighbours is reborn.</li>
             </ul>
           </details>
         </div>
       </div>
-      <div class="ascii-hr"><span class="ascii-hr-fill">------------------------------------------------------------------------</span></div>
       <div class="ascii-section">
         <div class="ascii-section-inner start-rules">
-          How it works<br>
+          How to play<br>
           <ul class="start-list">
-            <li>Create a starting pattern of cells by drawing freely or placing a pre-made pattern on the canvas.</li>
-            <li>As the simulation runs, cells appear and fade according to the four rules of the Game of Life.</li>
+            <li>Create a starting pattern of cells by drawing or placing a pre-made pattern on the canvas.</li>
+            <li>As the simulation runs, cells appear and fade based on the simulation rules.</li>
             <li>Note that this game contains flashing patterns.</li>
           </ul>
         </div>
@@ -490,8 +496,8 @@
         </div>
       </div>
       <div class="ascii-hr"><span class="ascii-hr-fill">------------------------------------------------------------------------</span></div>
-      <div style="text-align: right; padding: 6px 12px;">
-        <a href="https://github.com/Taikatuuli" target="_blank" rel="noopener" class="github-link">@Taikatuuli</a>
+      <div style="text-align: center; padding: 6px 12px; color: #cccccc; font-family: 'Courier New', monospace; font-size: 12px; letter-spacing: 1px;">
+        Made by <a href="https://www.venlainkari.com/" target="_blank" rel="noopener" class="github-link">@venla.ink</a>
       </div>
     </div>
   </div>
