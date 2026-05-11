@@ -876,7 +876,10 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
       const { r, c, valid } = cellAt({ clientX: touch.clientX, clientY: touch.clientY });
       lastMouseR = r; lastMouseC = c;
       if (activePattern) {
-        ghostCells.forEach(({ r, c }) => { current[r * COLS + c] = 1; });
+        activePattern.cells
+          .map(([dr, dc]) => ({ r: r + dr, c: c + dc }))
+          .filter(({ r, c }) => r >= 0 && r < ROWS && c >= 0 && c < COLS)
+          .forEach(({ r, c }) => { current[r * COLS + c] = 1; });
         dirty = true;
         return;
       }
@@ -897,11 +900,6 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
       const touch = e.touches[0];
       const { r, c, valid } = cellAt({ clientX: touch.clientX, clientY: touch.clientY });
       lastMouseR = r; lastMouseC = c;
-      if (activePattern) {
-        updateGhost();
-        clearTimeout(ghostHideTimer);
-        ghostHideTimer = setTimeout(() => { ghostCells = []; dirty = true; }, 1000);
-      }
       if (!dragging) return;
       if (valid) { current[r * COLS + c] = drawMode; dirty = true; }
     }, { passive: false });
