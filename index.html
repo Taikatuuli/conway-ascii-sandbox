@@ -68,13 +68,16 @@
     @media (max-width: 600px) {
       #overlay-controls { display: none; }
       #overlay { justify-content: flex-end; }
+      #tab-hint { display: none; }
+
+      #stamp-bar { position: relative; }
 
       #toolbar-toggle {
         display: block;
-        position: fixed;
-        bottom: 0;
-        left: 50%;
-        transform: translateX(-50%);
+        position: absolute;
+        top: 0;
+        left: 0;
+        transform: translateY(-100%);
         background: rgba(0,0,0,0.95);
         border: 1px solid #333333;
         border-bottom: none;
@@ -82,12 +85,13 @@
         font-family: 'Courier New', Courier, monospace;
         font-size: 12px;
         letter-spacing: 1px;
-        padding: 6px 20px;
+        padding: 6px 12px;
         cursor: pointer;
         z-index: 7;
         opacity: 0;
         pointer-events: none;
         transition: opacity 350ms;
+        white-space: nowrap;
       }
     }
 
@@ -341,13 +345,13 @@
       <div class="ascii-hr"><span class="ascii-hr-fill">------------------------------------------------------------------------</span></div>
     </div>
   </div>
-  <button type="button" id="toolbar-toggle">▲ tools</button>
   <div id="tab-hint">press [← →] to try different patterns</div>
   <div id="overlay">
     <span id="overlay-controls">[← →] select tool · [SPACE] pause/resume · [R] clear · [H] hide/show tools · [ESC] restart</span>
     <div id="gen-counter">GEN 0</div>
   </div>
   <div id="stamp-bar">
+    <button type="button" id="toolbar-toggle">▲ tools</button>
     <button type="button" class="stamp-btn" id="freehand-btn">FREE HAND</button>
     <button type="button" class="stamp-btn" data-pattern="blinker">BLINKER</button>
     <button type="button" class="stamp-btn" data-pattern="glider">GLIDER</button>
@@ -869,9 +873,25 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
     });
     field.addEventListener('contextmenu', e => e.preventDefault());
 
+    let lastTwoFingerTap = 0;
+
     field.addEventListener('touchstart', e => {
       e.preventDefault();
       if (startScreenVisible) return;
+      if (e.touches.length === 2) {
+        const now = Date.now();
+        if (now - lastTwoFingerTap < 300) {
+          current.fill(0);
+          next.fill(0);
+          decay.fill(0);
+          ghostCells = [];
+          gen = 0;
+          genCounter.textContent = 'GEN 0';
+          dirty = true;
+        }
+        lastTwoFingerTap = now;
+        return;
+      }
       const touch = e.touches[0];
       const { r, c, valid } = cellAt({ clientX: touch.clientX, clientY: touch.clientY });
       lastMouseR = r; lastMouseC = c;
@@ -981,7 +1001,8 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
         activePattern = PATTERNS[btn.dataset.pattern];
         document.querySelectorAll('.stamp-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        updateGhost();
+        if (isMobile()) { ghostCells = []; dirty = true; }
+        else updateGhost();
       }
     }
 
