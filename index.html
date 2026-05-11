@@ -926,6 +926,8 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
           gen = 0;
           genCounter.textContent = 'GEN 0';
           dirty = true;
+          mobileClearHint.classList.remove('visible');
+          clearTimeout(mobileClearHintTimer);
         }
         lastTwoFingerTap = now;
         return;
