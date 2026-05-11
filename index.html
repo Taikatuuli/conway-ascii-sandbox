@@ -65,10 +65,36 @@
       display: none;
     }
 
+    #mobile-clear-hint {
+      display: none;
+    }
+
     @media (max-width: 600px) {
       #overlay-controls { display: none; }
       #overlay { justify-content: flex-end; }
       #tab-hint { display: none; }
+
+      #mobile-clear-hint {
+        display: block;
+        position: fixed;
+        bottom: 60px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 12px;
+        color: #ffffff;
+        letter-spacing: 1px;
+        pointer-events: none;
+        z-index: 5;
+        opacity: 0;
+        transition: opacity 600ms;
+        white-space: nowrap;
+      }
+
+      #mobile-clear-hint.visible {
+        opacity: 1;
+      }
+    }
 
       #stamp-bar { position: relative; }
 
@@ -346,6 +372,7 @@
     </div>
   </div>
   <div id="tab-hint">press [← →] to try different patterns</div>
+  <div id="mobile-clear-hint">double tap with two fingers to clear</div>
   <div id="overlay">
     <span id="overlay-controls">[← →] select tool · [SPACE] pause/resume · [R] clear · [H] hide/show tools · [ESC] restart</span>
     <div id="gen-counter">GEN 0</div>
@@ -782,6 +809,8 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
       toolbarToggle.style.pointerEvents = 'none';
       toolbarToggle.textContent = '▲ tools';
       toolbarOpen = false;
+      mobileDrawCount = 0;
+      mobileClearHint.classList.remove('visible');
       startScreen.style.opacity = '1';
       startScreen.style.pointerEvents = '';
       document.querySelectorAll('.stamp-btn').forEach(b => b.classList.remove('active'));
@@ -874,6 +903,15 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
     field.addEventListener('contextmenu', e => e.preventDefault());
 
     let lastTwoFingerTap = 0;
+    let mobileDrawCount = 0;
+    const mobileClearHint = document.getElementById('mobile-clear-hint');
+    let mobileClearHintTimer = null;
+
+    function showMobileClearHint() {
+      mobileClearHint.classList.add('visible');
+      clearTimeout(mobileClearHintTimer);
+      mobileClearHintTimer = setTimeout(() => mobileClearHint.classList.remove('visible'), 4000);
+    }
 
     field.addEventListener('touchstart', e => {
       e.preventDefault();
@@ -901,6 +939,8 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
           .filter(({ r, c }) => r >= 0 && r < ROWS && c >= 0 && c < COLS)
           .forEach(({ r, c }) => { current[r * COLS + c] = 1; });
         dirty = true;
+        mobileDrawCount++;
+        if (mobileDrawCount === 3) showMobileClearHint();
         return;
       }
       dragging = true;
@@ -911,6 +951,8 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
       if (interactionMode === 'draw') {
         freehandUseCount++;
         if (freehandUseCount === 2) showTabHint();
+        mobileDrawCount++;
+        if (mobileDrawCount === 3) showMobileClearHint();
       }
     }, { passive: false });
 
