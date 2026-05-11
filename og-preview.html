@@ -13,76 +13,89 @@
       position: relative;
     }
 
-    /* ASCII field background */
     #bg {
       position: absolute;
       inset: 0;
       font-size: 11px;
       line-height: 0.63em;
-      color: #111111;
+      color: #0d0d0d;
       white-space: pre;
       padding: 4px;
       overflow: hidden;
     }
 
-    /* Static pattern displays */
     .pattern {
       position: absolute;
-      font-size: 13px;
-      line-height: 1.6;
-      color: #333333;
       white-space: pre;
+      font-family: 'Courier New', Courier, monospace;
+      color: #252525;
       letter-spacing: 2px;
     }
 
-    #pat-gosper  { top: 40px;  left: 40px;  color: #2a2a2a; font-size: 11px; line-height: 1.5; letter-spacing: 1px; }
-    #pat-pulsar  { bottom: 40px; right: 60px; color: #2a2a2a; font-size: 12px; line-height: 1.6; letter-spacing: 2px; }
-    #pat-glider  { top: 60px;  right: 80px;  color: #333333; font-size: 16px; line-height: 1.6; letter-spacing: 3px; }
-    #pat-blinker { bottom: 80px; left: 80px; color: #333333; font-size: 16px; line-height: 1.6; letter-spacing: 3px; }
+    /* Gosper gun — top left */
+    #p-gosper { top: 30px; left: 30px; font-size: 10px; line-height: 1.5; letter-spacing: 1px; color: #222222; }
 
-    /* Center content */
+    /* Pulsar — bottom right */
+    #p-pulsar { bottom: 30px; right: 50px; font-size: 11px; line-height: 1.55; letter-spacing: 2px; color: #222222; }
+
+    /* Diamond — left middle */
+    #p-diamond { top: 220px; left: 40px; font-size: 12px; line-height: 1.6; letter-spacing: 3px; color: #272727; }
+
+    /* Glider — top right */
+    #p-glider1 { top: 50px; right: 120px; font-size: 14px; line-height: 1.6; letter-spacing: 3px; color: #2a2a2a; }
+
+    /* Second glider — mid right */
+    #p-glider2 { top: 260px; right: 60px; font-size: 12px; line-height: 1.6; letter-spacing: 2px; color: #222222; }
+
+    /* Blinker — bottom left */
+    #p-blinker { bottom: 60px; left: 60px; font-size: 14px; line-height: 1.6; letter-spacing: 4px; color: #2a2a2a; }
+
+    /* Scrubber-like block — top center-right */
+    #p-block { top: 40px; left: 520px; font-size: 11px; line-height: 1.55; letter-spacing: 2px; color: #1e1e1e; }
+
     #center {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
       text-align: center;
+      width: 700px;
+    }
+
+    #plus {
+      color: #444444;
+      font-size: 20px;
+      letter-spacing: 8px;
+      margin-bottom: 18px;
     }
 
     #title {
       color: #ffffff;
-      font-size: 64px;
-      letter-spacing: 12px;
+      font-size: 72px;
+      letter-spacing: 14px;
       line-height: 1;
       margin-bottom: 20px;
     }
 
-    #plus {
-      color: #555555;
-      font-size: 32px;
-      letter-spacing: 6px;
-      margin-bottom: 16px;
+    .hr {
+      color: #2a2a2a;
+      font-size: 13px;
+      letter-spacing: 1px;
+      margin: 18px 0;
     }
 
     #desc {
-      color: #666666;
-      font-size: 16px;
-      letter-spacing: 3px;
-    }
-
-    .hr {
-      color: #333333;
-      font-size: 13px;
-      letter-spacing: 1px;
-      margin: 16px 0;
+      color: #555555;
+      font-size: 15px;
+      letter-spacing: 2px;
     }
   </style>
 </head>
 <body>
   <div id="bg"></div>
 
-  <!-- Gosper Glider Gun (top left) -->
-  <pre id="pat-gosper">                        +
+  <!-- Gosper Glider Gun -->
+  <pre id="p-gosper">                        +
                       + +
             ++      ++            ++
            +   +    ++            ++
@@ -92,8 +105,19 @@
            +   +
             ++</pre>
 
-  <!-- Pulsar (bottom right) -->
-  <pre id="pat-pulsar">  +++   +++
+  <!-- Diamond -->
+  <pre id="p-diamond">    ++++
+  ++++++++
+++++++++++++
+  ++++++++
+    ++++
+  ++++++++
+++++++++++++
+  ++++++++
+    ++++</pre>
+
+  <!-- Pulsar -->
+  <pre id="p-pulsar">  +++   +++
 
 +    + +    +
 +    + +    +
@@ -107,19 +131,28 @@
 +    + +    +
   +++   +++</pre>
 
-  <!-- Glider (top right) -->
-  <pre id="pat-glider"> +
+  <!-- Glider 1 -->
+  <pre id="p-glider1"> +
   +
 +++</pre>
 
-  <!-- Blinker (bottom left) -->
-  <pre id="pat-blinker">+++</pre>
+  <!-- Glider 2 (mirrored) -->
+  <pre id="p-glider2">+++
++
+ +</pre>
+
+  <!-- Blinker -->
+  <pre id="p-blinker">+++</pre>
+
+  <!-- Scrubber-like simple block -->
+  <pre id="p-block">++
+++</pre>
 
   <!-- Center -->
   <div id="center">
-    <div id="plus">+ + +</div>
+    <div id="plus">+ + + + +</div>
     <div id="title">GAME OF LIFE</div>
-    <div class="hr">- - - - - - - - - - - - - - - - - - - - - - - -</div>
+    <div class="hr">------------------------------------------------------------------------</div>
     <div id="desc">A simulation game where simple rules generate endless complexity.</div>
   </div>
 
@@ -127,7 +160,7 @@
     const bg = document.getElementById('bg');
     const cols = Math.ceil(1200 / 6.6);
     const rows = Math.ceil(630 / 6.93);
-    const chars = [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '+', '·'];
+    const chars = [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '+', '·'];
     let out = '';
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
