@@ -16,6 +16,10 @@ Made by [@venla.ink](https://www.venlainkari.com/)
 
 ---
 
+## Built with
+
+- Superpowers — AI-assisted development tool
+
 ## Sources
 
 - Conway's Game of Life — [Wikipedia](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life)
