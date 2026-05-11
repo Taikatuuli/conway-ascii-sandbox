@@ -110,6 +110,7 @@
       #overlay-controls { display: none; }
       #overlay { justify-content: flex-end; }
       #tab-hint { display: none; }
+      .stamp-btn-large { display: none; }
 
       #mobile-clear-hint {
         display: block;
@@ -125,7 +126,8 @@
         z-index: 5;
         opacity: 0;
         transition: opacity 600ms;
-        white-space: nowrap;
+        text-align: center;
+        max-width: 80vw;
       }
 
       #mobile-clear-hint.visible {
@@ -537,14 +539,14 @@
     <button type="button" class="stamp-btn" data-pattern="pulsar">PULSAR</button>
     <button type="button" class="stamp-btn" data-pattern="gosper">GOSPER GUN</button>
     <button type="button" class="stamp-btn" data-pattern="diamond">DIAMOND</button>
-    <button type="button" class="stamp-btn" data-pattern="linepuffer">LINE PUFFER</button>
+    <button type="button" class="stamp-btn stamp-btn-large" data-pattern="linepuffer">LINE PUFFER</button>
     <button type="button" class="stamp-btn" data-pattern="spacefiller">SPACEFILLER</button>
     <button type="button" class="stamp-btn" data-pattern="barberpole">BARBERPOLE</button>
     <button type="button" class="stamp-btn" data-pattern="scrubber">SCRUBBER</button>
     <button type="button" class="stamp-btn" data-pattern="shipinbottle">SHIP IN BOTTLE</button>
     <button type="button" class="stamp-btn" data-pattern="enretard">DELAYED</button>
-    <button type="button" class="stamp-btn" data-pattern="tumblersynth">TUMBLER SYNTH</button>
-    <button type="button" class="stamp-btn" data-pattern="hacksaw">HACKSAW</button>
+    <button type="button" class="stamp-btn stamp-btn-large" data-pattern="tumblersynth">TUMBLER SYNTH</button>
+    <button type="button" class="stamp-btn stamp-btn-large" data-pattern="hacksaw">HACKSAW</button>
   </div>
   <script>
     const field = document.getElementById('field');
@@ -956,7 +958,9 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
       toolbarOpen = false;
       mobileDrawCount = 0;
       clearTimeout(drawHintTimer);
+      clearTimeout(tabHintTimer);
       drawHint.classList.remove('visible');
+      tabHint.classList.remove('visible');
       mobileClearHint.classList.remove('visible');
       startScreen.style.opacity = '1';
       startScreen.style.pointerEvents = '';
@@ -1017,6 +1021,7 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
 
     field.addEventListener('mousedown', e => {
       if (startScreenVisible) return;
+      clearTimeout(drawHintTimer);
       drawHint.classList.remove('visible');
       if (activePattern) {
         e.preventDefault();
@@ -1025,8 +1030,8 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
         return;
       }
       e.preventDefault();
+      if (!dragging) pausedBeforeDraw = paused;
       dragging = true;
-      pausedBeforeDraw = paused;
       paused = true;
       drawMode = e.button === 2 ? 0 : 1;
       const raw = cellAt(e);
@@ -1108,6 +1113,7 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
         lastTwoFingerTap = now;
         return;
       }
+      clearTimeout(drawHintTimer);
       drawHint.classList.remove('visible');
       const touch = e.touches[0];
       const { r, c, valid } = cellAt({ clientX: touch.clientX, clientY: touch.clientY });
@@ -1120,8 +1126,8 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
         dirty = true;
         return;
       }
+      if (!dragging) pausedBeforeDraw = paused;
       dragging = true;
-      pausedBeforeDraw = paused;
       paused = true;
       drawMode = 1;
       const { r: sr0, c: sc0 } = snapCell(r, c);
