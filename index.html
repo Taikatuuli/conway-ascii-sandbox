@@ -448,6 +448,10 @@
       color: #ffffff;
       background: none;
     }
+
+    #begin-btn:active {
+      transform: scale(0.97);
+    }
   </style>
 </head>
 <body>
@@ -485,7 +489,7 @@
           <ul class="start-list">
             <li>Create a starting pattern of cells by drawing or placing a pre-made pattern on the canvas.</li>
             <li>As the simulation runs, cells appear and fade based on the simulation rules.</li>
-            <li>Note that this game contains flashing patterns.</li>
+            <li>Please note that this game contains flashing patterns.</li>
           </ul>
         </div>
       </div>
@@ -922,7 +926,7 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
       setTimeout(() => {
         overlay.style.transform = 'translateY(0)';
       }, 1000);
-      setTimeout(() => {
+      drawHintTimer = setTimeout(() => {
         drawHint.classList.add('visible');
       }, 1400);
     }
@@ -950,6 +954,7 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
       toolbarToggle.textContent = '▲ tools';
       toolbarOpen = false;
       mobileDrawCount = 0;
+      clearTimeout(drawHintTimer);
       drawHint.classList.remove('visible');
       mobileClearHint.classList.remove('visible');
       startScreen.style.opacity = '1';
@@ -998,6 +1003,7 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
     let pausedBeforeDraw = false;
     let freehandUseCount = 0;
     const drawHint = document.getElementById('draw-hint');
+    let drawHintTimer = null;
 
     const tabHint = document.getElementById('tab-hint');
     let tabHintTimer = null;
@@ -1111,8 +1117,6 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
           .filter(({ r, c }) => r >= 0 && r < ROWS && c >= 0 && c < COLS)
           .forEach(({ r, c }) => { current[r * COLS + c] = 1; });
         dirty = true;
-        mobileDrawCount++;
-        if (mobileDrawCount === 3) showMobileClearHint();
         return;
       }
       dragging = true;
