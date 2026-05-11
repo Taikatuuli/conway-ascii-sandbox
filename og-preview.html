@@ -10,6 +10,7 @@
       background: #000;
       font-family: 'Courier New', Courier, monospace;
       overflow: hidden;
+      position: relative;
     }
 
     /* ASCII field background */
@@ -18,80 +19,111 @@
       inset: 0;
       font-size: 11px;
       line-height: 0.63em;
-      color: #1a1a1a;
+      color: #111111;
       white-space: pre;
       padding: 4px;
       overflow: hidden;
     }
 
-    /* Center panel */
-    #panel {
+    /* Static pattern displays */
+    .pattern {
+      position: absolute;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #333333;
+      white-space: pre;
+      letter-spacing: 2px;
+    }
+
+    #pat-gosper  { top: 40px;  left: 40px;  color: #2a2a2a; font-size: 11px; line-height: 1.5; letter-spacing: 1px; }
+    #pat-pulsar  { bottom: 40px; right: 60px; color: #2a2a2a; font-size: 12px; line-height: 1.6; letter-spacing: 2px; }
+    #pat-glider  { top: 60px;  right: 80px;  color: #333333; font-size: 16px; line-height: 1.6; letter-spacing: 3px; }
+    #pat-blinker { bottom: 80px; left: 80px; color: #333333; font-size: 16px; line-height: 1.6; letter-spacing: 3px; }
+
+    /* Center content */
+    #center {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 560px;
-      font-size: 13px;
-      line-height: 1.8;
-      letter-spacing: 0.5px;
-    }
-
-    .hr {
-      display: flex;
-      color: #555;
-    }
-    .hr::before, .hr::after { content: '+'; flex-shrink: 0; }
-    .hr-fill { flex: 1; overflow: hidden; white-space: nowrap; color: #555; }
-
-    .section-inner {
-      padding: 16px 20px;
-      border-left: 1px solid #555;
-      border-right: 1px solid #555;
+      text-align: center;
     }
 
     #title {
       color: #ffffff;
-      font-size: 20px;
-      letter-spacing: 4px;
-      text-align: center;
-      margin-bottom: 4px;
+      font-size: 64px;
+      letter-spacing: 12px;
+      line-height: 1;
+      margin-bottom: 20px;
     }
 
-    #subtitle {
-      color: #888;
-      font-size: 11px;
-      letter-spacing: 2px;
-      text-align: center;
+    #plus {
+      color: #555555;
+      font-size: 32px;
+      letter-spacing: 6px;
+      margin-bottom: 16px;
     }
 
-    .desc {
-      color: #cccccc;
-      font-size: 12px;
+    #desc {
+      color: #666666;
+      font-size: 16px;
+      letter-spacing: 3px;
+    }
+
+    .hr {
+      color: #333333;
+      font-size: 13px;
+      letter-spacing: 1px;
+      margin: 16px 0;
     }
   </style>
 </head>
 <body>
   <div id="bg"></div>
-  <div id="panel">
-    <div class="hr"><span class="hr-fill">----------------------------------------------------------------</span></div>
-    <div class="section-inner">
-      <div id="title">CONWAY ASCII SANDBOX</div>
-      <div id="subtitle">a cellular automaton by John Horton Conway, 1970</div>
-    </div>
-    <div class="hr"><span class="hr-fill">----------------------------------------------------------------</span></div>
-    <div class="section-inner desc">
-      A simulation where cells emerge and fade by simple rules —<br>
-      yet produce endless complexity.
-    </div>
-    <div class="hr"><span class="hr-fill">----------------------------------------------------------------</span></div>
-    <div class="section-inner desc" style="color:#888; font-size:11px; letter-spacing:1px;">
-      · select a tool &nbsp;· draw or stamp patterns &nbsp;· watch complexity emerge
-    </div>
-    <div class="hr"><span class="hr-fill">----------------------------------------------------------------</span></div>
+
+  <!-- Gosper Glider Gun (top left) -->
+  <pre id="pat-gosper">                        +
+                      + +
+            ++      ++            ++
+           +   +    ++            ++
+++        +     +   ++
+++        +   + ++    + +
+          +     +       +
+           +   +
+            ++</pre>
+
+  <!-- Pulsar (bottom right) -->
+  <pre id="pat-pulsar">  +++   +++
+
++    + +    +
++    + +    +
++    + +    +
+  +++   +++
+
+  +++   +++
+
++    + +    +
++    + +    +
++    + +    +
+  +++   +++</pre>
+
+  <!-- Glider (top right) -->
+  <pre id="pat-glider"> +
+  +
++++</pre>
+
+  <!-- Blinker (bottom left) -->
+  <pre id="pat-blinker">+++</pre>
+
+  <!-- Center -->
+  <div id="center">
+    <div id="plus">+ + +</div>
+    <div id="title">GAME OF LIFE</div>
+    <div class="hr">- - - - - - - - - - - - - - - - - - - - - - - -</div>
+    <div id="desc">A simulation game where simple rules generate endless complexity.</div>
   </div>
 
   <script>
-    // Fill background with scattered + and · chars
     const bg = document.getElementById('bg');
     const cols = Math.ceil(1200 / 6.6);
     const rows = Math.ceil(630 / 6.93);
