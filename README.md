@@ -2,7 +2,7 @@
 
 Game of Life is a non-player simulation where simple rules create complex, evolving patterns. A cellular automaton created by John Horton Conway in 1970.
 
-Draw freely or place pre-made patterns on the canvas and watch cells appear and fade across generations.
+This is my creative take on the game, hope you enjoy it.
 
 **[Play it →](https://conway-ascii-sandbox.vercel.app)**
 
