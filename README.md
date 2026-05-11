@@ -12,7 +12,7 @@ Made by [@venla.ink](https://www.venlainkari.com/)
 
 ## License
 
-[MIT](./LICENSE) — © 2025 Venla Inkari
+[GNU GPL v3](./LICENSE) — © 2025 Venla Inkari
 
 ---
 
