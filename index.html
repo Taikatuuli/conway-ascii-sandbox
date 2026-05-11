@@ -48,8 +48,8 @@
       color: #999;
       transform: translateY(-100%);
       transition: transform 350ms ease-out;
-      pointer-events: none;
       letter-spacing: 1px;
+      pointer-events: auto;
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
@@ -59,6 +59,37 @@
     #overlay-controls {
       flex: 1;
       min-width: 0;
+      pointer-events: auto;
+    }
+
+    .overlay-btn {
+      background: none;
+      border: none;
+      color: #999;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 12px;
+      letter-spacing: 1px;
+      cursor: pointer;
+      padding: 0;
+      pointer-events: auto;
+    }
+
+    .overlay-btn:hover {
+      color: #ffffff;
+    }
+
+    #top-trigger {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 8px;
+      z-index: 4;
+    }
+
+    #bottom-trigger {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 8px;
+      z-index: 4;
     }
 
     #toolbar-toggle {
@@ -338,6 +369,8 @@
 </head>
 <body>
   <pre id="field"></pre>
+  <div id="top-trigger"></div>
+  <div id="bottom-trigger"></div>
   <div id="start-screen">
     <div id="start-panel">
       <div class="ascii-hr"><span class="ascii-hr-fill">------------------------------------------------------------------------</span></div>
@@ -358,7 +391,6 @@
         <div class="ascii-section-inner start-rules">
           Instructions:<br>
           · Draw freely or place preset patterns.<br>
-          · Use [← →] to switch tools.<br>
           · Watch complexity emerge.
         </div>
       </div>
@@ -369,12 +401,21 @@
         </div>
       </div>
       <div class="ascii-hr"><span class="ascii-hr-fill">------------------------------------------------------------------------</span></div>
+      <div style="text-align: right; padding: 6px 12px;">
+        <a href="https://github.com/Taikatuuli" target="_blank" rel="noopener" style="color: #555555; text-decoration: none; font-family: 'Courier New', monospace; font-size: 12px; letter-spacing: 1px;">@Taikatuuli</a>
+      </div>
     </div>
   </div>
   <div id="tab-hint">press [← →] to try different patterns</div>
-  <div id="mobile-clear-hint">double tap with two fingers to clear</div>
+  <div id="mobile-clear-hint">double tap with two fingers to clear canvas</div>
   <div id="overlay">
-    <span id="overlay-controls">[← →] select tool · [SPACE] pause/resume · [R] clear · [H] hide/show tools · [ESC] restart</span>
+    <span id="overlay-controls">
+      <button class="overlay-btn" id="btn-cycle">[← →] select tool</button> ·
+      <button class="overlay-btn" id="btn-pause">[SPACE] pause/resume</button> ·
+      <button class="overlay-btn" id="btn-clear">[R] clear canvas</button> ·
+      <button class="overlay-btn" id="btn-help">[H] hide/show tools</button> ·
+      <button class="overlay-btn" id="btn-menu">[ESC] main menu</button>
+    </span>
     <div id="gen-counter">GEN 0</div>
   </div>
   <div id="stamp-bar">
@@ -1078,6 +1119,67 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
       }
       const digit = e.code.match(/^Digit([1-9])$/);
       if (digit) selectTool(parseInt(digit[1]) - 1);
+    });
+
+    let overlayHideTimer = null;
+    let stampHideTimer = null;
+
+    document.getElementById('top-trigger').addEventListener('mouseenter', () => {
+      if (helpVisible) return;
+      clearTimeout(overlayHideTimer);
+      overlay.style.transform = 'translateY(0)';
+    });
+
+    overlay.addEventListener('mouseleave', () => {
+      if (helpVisible) return;
+      overlayHideTimer = setTimeout(() => {
+        overlay.style.transform = 'translateY(-100%)';
+      }, 300);
+    });
+
+    overlay.addEventListener('mouseenter', () => {
+      clearTimeout(overlayHideTimer);
+    });
+
+    document.getElementById('bottom-trigger').addEventListener('mouseenter', () => {
+      if (helpVisible) return;
+      clearTimeout(stampHideTimer);
+      stampBar.style.transform = 'translateY(0)';
+      stampBar.style.pointerEvents = 'auto';
+    });
+
+    stampBar.addEventListener('mouseleave', () => {
+      if (helpVisible) return;
+      stampHideTimer = setTimeout(() => {
+        stampBar.style.transform = 'translateY(100%)';
+        stampBar.style.pointerEvents = 'none';
+      }, 300);
+    });
+
+    stampBar.addEventListener('mouseenter', () => {
+      clearTimeout(stampHideTimer);
+    });
+
+    document.getElementById('btn-cycle').addEventListener('click', () => {
+      selectTool(currentToolIndex + 1);
+    });
+    document.getElementById('btn-pause').addEventListener('click', () => {
+      paused = !paused;
+    });
+    document.getElementById('btn-clear').addEventListener('click', () => {
+      current.fill(0); next.fill(0); decay.fill(0);
+      ghostCells = []; gen = 0;
+      genCounter.textContent = 'GEN 0';
+      dirty = true;
+    });
+    document.getElementById('btn-help').addEventListener('click', () => {
+      helpVisible = !helpVisible;
+      overlay.style.transform = helpVisible ? 'translateY(0)' : 'translateY(-100%)';
+      stampBar.style.transform = helpVisible ? 'translateY(0)' : 'translateY(100%)';
+      stampBar.style.pointerEvents = helpVisible ? 'auto' : 'none';
+    });
+    document.getElementById('btn-menu').addEventListener('click', () => {
+      restartGame();
     });
 
     requestAnimationFrame(loop);
