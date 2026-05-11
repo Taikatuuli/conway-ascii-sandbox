@@ -6,8 +6,6 @@ Draw freely or place pre-made patterns on the canvas and watch cells appear and 
 
 **[Play it →](https://conway-ascii-sandbox.vercel.app)**
 
-Made by [@venla.ink](https://www.venlainkari.com/)
-
 ---
 
 ## License
