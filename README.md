@@ -16,7 +16,7 @@ Draw freely or place pre-made patterns on the canvas and watch cells appear and 
 
 ## Built with
 
-- Superpowers — AI-assisted development tool
+- [Superpowers](https://github.com/obra/superpowers) — AI-assisted development tool
 
 ## Sources
 
