@@ -295,9 +295,12 @@
       font-size: 12px;
       line-height: 1.8;
       letter-spacing: 0.5px;
+      display: grid;
+      grid-template-columns: 1ch 1fr 1ch;
     }
 
     .ascii-hr {
+      grid-column: 1 / -1;
       display: flex;
       align-items: center;
       color: #888888;
@@ -321,27 +324,18 @@
     }
 
     .ascii-section {
-      position: relative;
-      padding-left: 1ch;
-      padding-right: 1ch;
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1ch 1fr 1ch;
     }
 
-    .ascii-section::before, .ascii-section::after {
-      content: '║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║';
-      position: absolute;
-      top: 0;
-      bottom: 0;
+    .ascii-border {
+      color: #888888;
+      overflow: hidden;
       writing-mode: vertical-lr;
       text-orientation: upright;
-      overflow: hidden;
-      color: #888888;
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 12px;
       white-space: nowrap;
     }
-
-    .ascii-section::before { left: 0; }
-    .ascii-section::after  { right: 0; }
 
     .ascii-section-inner {
       padding: 16px 24px;
@@ -349,7 +343,7 @@
 
     .ascii-hr-label {
       flex-shrink: 0;
-      color: #cccccc;
+      color: #ededed;
       padding: 0 6px;
       letter-spacing: 2px;
     }
@@ -364,14 +358,14 @@
     }
 
     #start-subtitle {
-      color: #cccccc;
+      color: #ededed;
       font-size: 12px;
       letter-spacing: 2px;
       text-align: center;
     }
 
     .start-rules, .start-controls {
-      color: #cccccc;
+      color: #ededed;
     }
 
     .start-list {
@@ -396,13 +390,13 @@
 
     .rules-intro {
       margin: 6px 0 4px 0;
-      color: #cccccc;
+      color: #ededed;
     }
 
     #rules-details summary {
       cursor: pointer;
       list-style: none;
-      color: #cccccc;
+      color: #ededed;
       letter-spacing: 1px;
       user-select: none;
     }
@@ -421,7 +415,7 @@
     }
 
     #rules-details summary:hover {
-      color: #cccccc;
+      color: #ededed;
     }
 
     #source-link {
@@ -450,7 +444,7 @@
       margin: 0 auto;
       border: none;
       background: none;
-      color: #cccccc;
+      color: #ededed;
       font-family: 'Courier New', Courier, monospace;
       font-size: 12px;
       letter-spacing: 1px;
@@ -479,12 +473,15 @@
     <div id="start-panel">
       <div class="ascii-hr ascii-hr--top"><span class="ascii-hr-fill">════════════════════════════</span><span class="ascii-hr-label">GAME OF LIFE</span><span class="ascii-hr-fill">════════════════════════════</span></div>
       <div class="ascii-section">
+        <span class="ascii-border">║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║</span>
         <div class="ascii-section-inner">
           <div id="start-subtitle">Game of Life is a non-player simulation where simple rules create complex, evolving patterns. Originally created by John Horton Conway in 1970.</div>
         </div>
+        <span class="ascii-border">║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║</span>
       </div>
       <div class="ascii-hr"><span class="ascii-hr-fill">════════════════════════════════════════════════════════════════════════════════</span></div>
       <div class="ascii-section">
+        <span class="ascii-border">║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║</span>
         <div class="ascii-section-inner start-rules">
           How to play
           <ul class="start-list">
@@ -508,18 +505,23 @@
           </details>
           <br>Note that this game contains flashing patterns.
         </div>
+        <span class="ascii-border">║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║</span>
       </div>
       <div class="ascii-hr"><span class="ascii-hr-fill">════════════════════════════════════════════════════════════════════════════════</span></div>
       <div class="ascii-section">
+        <span class="ascii-border">║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║</span>
         <div class="ascii-section-inner" style="text-align: center;">
           <button type="button" id="begin-btn">[ START GAME ]</button>
         </div>
+        <span class="ascii-border">║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║</span>
       </div>
       <div class="ascii-hr"><span class="ascii-hr-fill">════════════════════════════════════════════════════════════════════════════════</span></div>
       <div class="ascii-section">
+        <span class="ascii-border">║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║</span>
         <div class="ascii-section-inner" style="text-align: center;">
           <a href="https://www.venlainkari.com/" target="_blank" rel="noopener" class="github-link">@venla.ink</a>
         </div>
+        <span class="ascii-border">║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║║</span>
       </div>
       <div class="ascii-hr ascii-hr--bot"><span class="ascii-hr-fill">════════════════════════════════════════════════════════════════════════════════</span></div>
     </div>
