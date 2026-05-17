@@ -297,18 +297,6 @@
       letter-spacing: 0.5px;
     }
 
-    .glider-art {
-      margin: 0;
-      padding: 4px 0;
-      white-space: pre;
-      color: #2a2a2a;
-      overflow: hidden;
-    }
-
-    .glider-art .alive {
-      color: #ffffff;
-    }
-
     .ascii-hr {
       display: flex;
       align-items: center;
@@ -336,7 +324,7 @@
     }
 
     .ascii-section::before, .ascii-section::after {
-      content: '||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||';
+      content: '+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+';
       position: absolute;
       top: 0;
       bottom: 0;
@@ -354,11 +342,6 @@
 
     .ascii-section-inner {
       padding: 16px 24px;
-    }
-
-    .ascii-section-inner--compact {
-      padding-top: 8px;
-      padding-bottom: 8px;
     }
 
     .ascii-hr-label {
@@ -491,23 +474,13 @@
   <div id="bottom-trigger"></div>
   <div id="start-screen">
     <div id="start-panel">
-      <div class="ascii-hr"><span class="ascii-hr-fill">--------------------------------------------------------------------------------</span></div>
-      <div class="ascii-section">
-        <div class="ascii-section-inner ascii-section-inner--compact">
-          <pre class="glider-art">·  ·     ·        ·              ·     ·    ·      ·  ·
-·        ·          ·      <span class="alive">+</span>            ·    ·      ·
-  ·          ·              <span class="alive">+</span>      ·          ·    ·
-·     ·  ·                <span class="alive">+</span><span class="alive">+</span><span class="alive">+</span>      ·      ·       ·
-  ·        ·    ·          ·       ·     ·      ·   ·  </pre>
-        </div>
-      </div>
-      <div class="ascii-hr"><span class="ascii-hr-fill">----------------------------</span><span class="ascii-hr-label">[ GAME OF LIFE ]</span><span class="ascii-hr-fill">----------------------------</span></div>
+      <div class="ascii-hr"><span class="ascii-hr-fill">··+··+··+··+··+··+··+··+··+</span><span class="ascii-hr-label">[ GAME OF LIFE ]</span><span class="ascii-hr-fill">··+··+··+··+··+··+··+··+··+</span></div>
       <div class="ascii-section">
         <div class="ascii-section-inner">
           <div id="start-subtitle">Game of Life is a non-player simulation where simple rules create complex, evolving patterns. Originally created by John Horton Conway in 1970.</div>
         </div>
       </div>
-      <div class="ascii-hr"><span class="ascii-hr-fill">--------------------------------------------------------------------------------</span></div>
+      <div class="ascii-hr"><span class="ascii-hr-fill">··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+</span></div>
       <div class="ascii-section">
         <div class="ascii-section-inner start-rules">
           How to play
@@ -533,13 +506,13 @@
           <br>Note that this game contains flashing patterns.
         </div>
       </div>
-      <div class="ascii-hr"><span class="ascii-hr-fill">--------------------------------------------------------------------------------</span></div>
+      <div class="ascii-hr"><span class="ascii-hr-fill">··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+</span></div>
       <div class="ascii-section">
         <div class="ascii-section-inner" style="text-align: center;">
           <button type="button" id="begin-btn">[ START GAME ]</button>
         </div>
       </div>
-      <div class="ascii-hr"><span class="ascii-hr-fill">--------------------------------------------------------------------------------</span></div>
+      <div class="ascii-hr"><span class="ascii-hr-fill">··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+··+</span></div>
       <div style="text-align: center; padding: 6px 12px; color: #888888; font-family: 'Courier New', monospace; font-size: 12px; letter-spacing: 1px;">
         Made by <a href="https://www.venlainkari.com/" target="_blank" rel="noopener" class="github-link">@venla.ink</a>
       </div>
