@@ -212,6 +212,10 @@
       transition: opacity 600ms;
     }
 
+    @media (min-width: 601px) {
+      #draw-hint, #tab-hint { display: none; }
+    }
+
     #tab-hint.visible {
       opacity: 1;
     }
@@ -309,7 +313,7 @@
 
     #start-panel {
       background: rgba(0,0,0,0.92);
-      max-width: 480px;
+      max-width: 560px;
       width: 100%;
       font-family: 'Commit Mono', 'Courier New', monospace;
       font-size: 13px;
