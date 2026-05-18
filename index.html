@@ -535,8 +535,7 @@
     let decay   = new Uint8Array(COLS * ROWS);
     const DECAY_STEPS = 8;
     const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    let reducedMotion = reducedMotionQuery.matches;
-    reducedMotionQuery.addEventListener('change', e => { reducedMotion = e.matches; });
+    function prefersReducedMotion() { return reducedMotionQuery.matches; }
 
     function nextGen(src, dst, cols, rows) {
       for (let r = 0; r < rows; r++) {
@@ -587,7 +586,7 @@
           const alive = current[r * COLS + c];
           if (!alive) {
             const d = decay[r * COLS + c];
-            if (!reducedMotion && d > 0) {
+            if (!prefersReducedMotion() && d > 0) {
               const v = Math.round((d / DECAY_STEPS) * 180).toString(16).padStart(2, '0');
               parts.push(`<span style="color:#${v}${v}${v}">·</span>`);
             } else {
@@ -807,7 +806,7 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
       if (!paused && wipeStartTime === null && ts - lastTick >= (TICK_MS)) {
         nextGen(current, next, COLS, ROWS);
         for (let i = 0; i < current.length; i++) {
-          if (!reducedMotion) {
+          if (!prefersReducedMotion()) {
             if (next[i] === 0) {
               if (current[i] === 1) decay[i] = DECAY_STEPS;
               else if (decay[i] > 0) decay[i]--;
