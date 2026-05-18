@@ -499,6 +499,7 @@
   <div id="stamp-bar">
     <button type="button" id="toolbar-toggle">▲ tools</button>
     <button type="button" class="stamp-btn" id="freehand-btn">DRAW</button>
+    <button type="button" class="stamp-btn" data-pattern="aurora">AURORA</button>
     <button type="button" class="stamp-btn" data-pattern="blinker">BLINKER</button>
     <button type="button" class="stamp-btn" data-pattern="glider">GLIDER</button>
     <button type="button" class="stamp-btn" data-pattern="pulsar">PULSAR</button>
@@ -808,6 +809,18 @@ o3bo83b$7b2o20b3o81b$8b2o36b3o64b$7bo48b2ob2o52b$50b2o4bo3bo4b2o46b$
 $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
 13b2o6bo16bo61b$26bobo22bo61b$26bo86b3$7b3o10b3o90b$9bo12bo90b$8bo12bo
 !`) };
+
+    {
+      const sr = parseRLE(`x = 22, y = 19, rule = 23/3
+11b2o5b4o$9b2ob2o3bo3bo$9b4o8bo$10b2o5bo2bob2$8bo13b$7b2o8b2o3b$6bo9bo
+2bo2b$7b5o4bo2bo2b$8b4o3b2ob2o2b$11bo4b2o4b4$18b4o$o2bo13bo3bo$4bo16bo
+$o3bo12bo2bob$b4o!`);
+      const aurora = [];
+      for (let i = 0; i < 8; i++) {
+        sr.forEach(([r, c]) => aurora.push([r + i * 26, c]));
+      }
+      PATTERNS.aurora = { cells: aurora };
+    }
 
     let wipeStartTime = null;
     let deathOrder = null;
