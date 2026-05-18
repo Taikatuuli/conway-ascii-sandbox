@@ -41,7 +41,7 @@
       width: 100vw;
       height: 100vh;
       font-family: 'Commit Mono', 'Courier New', monospace;
-      font-size: 12px;
+      font-size: 10px;
       line-height: 0.63;
       color: #000000;
       white-space: pre;
@@ -532,7 +532,7 @@
 
     // Measure a single character's rendered size
     const probe = document.createElement('pre');
-    probe.style.cssText = 'position:absolute;visibility:hidden;white-space:pre;font-family:"Courier New",Courier,monospace;font-size:12px;line-height:0.63';
+    probe.style.cssText = 'position:absolute;visibility:hidden;white-space:pre;font-family:"Courier New",Courier,monospace;font-size:10px;line-height:0.63';
     probe.textContent = 'X\nX';
     document.body.appendChild(probe);
     const charW = probe.getBoundingClientRect().width;
