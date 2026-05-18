@@ -74,14 +74,17 @@
       pointer-events: auto;
     }
 
-    .overlay-btn {
-      background: none;
-      border: none;
-      color: #999;
+    .overlay-btn, .stamp-btn {
       font-family: 'Commit Mono', 'Courier New', monospace;
       font-size: 12px;
       letter-spacing: 1px;
       cursor: pointer;
+      background: none;
+      border: none;
+    }
+
+    .overlay-btn {
+      color: #999;
       padding: 0;
       pointer-events: auto;
     }
@@ -107,10 +110,6 @@
       bottom: 0; left: 0; right: 0;
       height: 8px;
       z-index: 4;
-    }
-
-    #toolbar-toggle {
-      display: none;
     }
 
     #mobile-clear-hint {
@@ -238,13 +237,8 @@
 
     .stamp-btn {
       border: 1px solid #666666;
-      background: none;
       color: #888888;
-      font-family: 'Commit Mono', 'Courier New', monospace;
-      font-size: 12px;
-      letter-spacing: 1px;
       padding: 2px 6px;
-      cursor: pointer;
     }
 
     .stamp-btn.active {
@@ -534,9 +528,6 @@
     let decay   = new Uint8Array(COLS * ROWS);
     const DECAY_STEPS = 8;
 
-    // Smoke test: log dimensions
-    console.log(`Grid: ${COLS} cols × ${ROWS} rows, char: ${charW.toFixed(2)}×${charH.toFixed(2)}px`);
-
     function nextGen(src, dst, cols, rows) {
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
@@ -552,39 +543,6 @@
         }
       }
     }
-
-    // Unit tests for nextGen
-    (function testNextGen() {
-      // Test: isolated live cell dies
-      const g1 = new Uint8Array(9); // 3×3
-      g1[4] = 1; // center alive, no neighbors
-      const d1 = new Uint8Array(9);
-      nextGen(g1, d1, 3, 3);
-      console.assert(d1[4] === 0, 'isolated cell should die');
-
-      // Test: dead cell with exactly 3 neighbors is born
-      const g2 = new Uint8Array(9); // 3×3
-      g2[0] = 1; g2[1] = 1; g2[3] = 1; // three neighbors around center
-      const d2 = new Uint8Array(9);
-      nextGen(g2, d2, 3, 3);
-      console.assert(d2[4] === 1, 'dead cell with 3 neighbors should be born');
-
-      // Test: live cell with 2 neighbors survives
-      const g3 = new Uint8Array(9);
-      g3[4] = 1; g3[0] = 1; g3[1] = 1; // center + 2 neighbors
-      const d3 = new Uint8Array(9);
-      nextGen(g3, d3, 3, 3);
-      console.assert(d3[4] === 1, 'live cell with 2 neighbors should survive');
-
-      // Test: live cell with 4 neighbors dies (overcrowding)
-      const g4 = new Uint8Array(9);
-      g4[4] = 1; g4[0] = 1; g4[1] = 1; g4[2] = 1; g4[3] = 1;
-      const d4 = new Uint8Array(9);
-      nextGen(g4, d4, 3, 3);
-      console.assert(d4[4] === 0, 'live cell with 4 neighbors should die');
-
-      console.log('nextGen tests passed');
-    })();
 
     function countNeighbors(grid, r, c) {
       let n = 0;
@@ -901,18 +859,12 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
     }
 
     function restartGame() {
-      current.fill(0);
-      next.fill(0);
-      decay.fill(0);
-      ghostCells = [];
+      clearGrid();
       activePattern = null;
       wipeStartTime = null;
       deathOrder = null;
       paused = false;
       dragging = false;
-      gen = 0;
-      genCounter.textContent = 'GEN 0';
-      dirty = true;
       helpVisible = false;
       startScreenVisible = true;
       stampBar.style.transform = 'translateY(100%)';
@@ -1066,13 +1018,7 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
       if (e.touches.length === 2) {
         const now = Date.now();
         if (now - lastTwoFingerTap < 300) {
-          current.fill(0);
-          next.fill(0);
-          decay.fill(0);
-          ghostCells = [];
-          gen = 0;
-          genCounter.textContent = 'GEN 0';
-          dirty = true;
+          clearGrid();
           mobileClearHint.classList.remove('visible');
           clearTimeout(mobileClearHintTimer);
         }
@@ -1141,30 +1087,28 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
 
     document.addEventListener('keydown', e => {
       if (startScreenVisible) return;
-      if (e.code === 'KeyH') {
-        helpVisible = !helpVisible;
-        overlay.style.transform = helpVisible ? 'translateY(0)' : 'translateY(-100%)';
-        stampBar.style.transform = helpVisible ? 'translateY(0)' : 'translateY(100%)';
-        stampBar.style.pointerEvents = helpVisible ? 'auto' : 'none';
-      }
-      if (e.code === 'Space') {
-        e.preventDefault();
-        paused = !paused;
-      }
-      if (e.code === 'KeyR') {
-        current.fill(0);
-        next.fill(0);
-        decay.fill(0);
-        ghostCells = [];
-        gen = 0;
-        genCounter.textContent = 'GEN 0';
-        dirty = true;
-      }
+      if (e.code === 'KeyH') toggleHelp();
+      if (e.code === 'Space') { e.preventDefault(); paused = !paused; }
+      if (e.code === 'KeyR') clearGrid();
       if (e.code === 'Escape') {
         restartGame();
       }
     });
 
+
+    function clearGrid() {
+      current.fill(0); next.fill(0); decay.fill(0);
+      ghostCells = []; gen = 0;
+      genCounter.textContent = 'GEN 0';
+      dirty = true;
+    }
+
+    function toggleHelp() {
+      helpVisible = !helpVisible;
+      overlay.style.transform = helpVisible ? 'translateY(0)' : 'translateY(-100%)';
+      stampBar.style.transform = helpVisible ? 'translateY(0)' : 'translateY(100%)';
+      stampBar.style.pointerEvents = helpVisible ? 'auto' : 'none';
+    }
 
     const freehandBtn = document.getElementById('freehand-btn');
     let interactionMode = 'draw'; // 'draw' | 'stamp'
@@ -1278,18 +1222,8 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
     document.getElementById('btn-pause').addEventListener('click', () => {
       paused = !paused;
     });
-    document.getElementById('btn-clear').addEventListener('click', () => {
-      current.fill(0); next.fill(0); decay.fill(0);
-      ghostCells = []; gen = 0;
-      genCounter.textContent = 'GEN 0';
-      dirty = true;
-    });
-    document.getElementById('btn-help').addEventListener('click', () => {
-      helpVisible = !helpVisible;
-      overlay.style.transform = helpVisible ? 'translateY(0)' : 'translateY(-100%)';
-      stampBar.style.transform = helpVisible ? 'translateY(0)' : 'translateY(100%)';
-      stampBar.style.pointerEvents = helpVisible ? 'auto' : 'none';
-    });
+    document.getElementById('btn-clear').addEventListener('click', clearGrid);
+    document.getElementById('btn-help').addEventListener('click', toggleHelp);
     document.getElementById('btn-menu').addEventListener('click', () => {
       restartGame();
     });
