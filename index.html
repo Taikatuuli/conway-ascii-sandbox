@@ -44,7 +44,7 @@
       white-space: pre;
       cursor: crosshair;
       user-select: none;
-      opacity: 0.80;
+      opacity: 1;
     }
 
     #overlay {
@@ -602,8 +602,8 @@
     function charFor(alive, neighbors) {
       if (alive) {
         return neighbors === 2 || neighbors === 3
-          ? { ch: '+', color: '#ffffff' }
-          : { ch: '·', color: '#ffffff' };
+          ? { ch: '+', color: '#ededed' }
+          : { ch: '·', color: '#ededed' };
       }
       return { ch: ' ', color: null };
     }
