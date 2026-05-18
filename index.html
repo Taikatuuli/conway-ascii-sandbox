@@ -172,27 +172,7 @@
         outline: 1px dashed #ffffff;
         outline-offset: 2px;
       }
-    }
-
-    #draw-hint {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-family: 'Commit Mono', 'Courier New', monospace;
-      font-size: 20px;
-      color: #ffffff;
-      letter-spacing: 3px;
-      pointer-events: none;
-      z-index: 11;
-      opacity: 0;
-      transition: opacity 600ms;
-      white-space: nowrap;
-    }
-
-    #draw-hint.visible {
-      opacity: 1;
-    }
+    
 
     #tab-hint {
       position: fixed;
@@ -484,7 +464,7 @@
     <div id="start-panel">
       <div class="panel-section" style="text-align: center; letter-spacing: 3px; color: #ededed;"><h1 style="font: inherit; margin: 0; font-weight: 400;">GAME OF LIFE</h1></div>
       <div class="panel-section">
-        <div id="start-subtitle">Game of Life is a zero-player simulation that demonstrates how complex life-like behavior can emerge from simple rules. It was originally created by <a href="https://en.wikipedia.org/wiki/John_Horton_Conway" target="_blank" rel="noopener" class="text-link">John Horton Conway</a> in 1970.</div>
+        <div id="start-subtitle">Game of Life is a zero-player simulation that demonstrates how complex life-like behavior can emerge from simple simulation rules. It was originally created by <a href="https://en.wikipedia.org/wiki/John_Horton_Conway" target="_blank" rel="noopener" class="text-link">John Horton Conway</a> in 1970.</div>
       </div>
       <div class="panel-section start-rules">
         How to play
@@ -515,11 +495,9 @@
       </div>
     </div>
     <div id="start-attribution">
-      <a href="https://github.com/Taikatuuli/conway-ascii-sandbox" target="_blank" rel="noopener" class="text-link">GitHub Repository</a>
+      <a href="https://github.com/Taikatuuli/conway-ascii-sandbox" target="_blank" rel="noopener" class="text-link">GitHub Repo</a>
     </div>
   </div>
-  <div id="draw-hint" role="status" aria-live="polite">Hint: Click and drag to draw cells</div>
-  <div id="tab-hint" role="status" aria-live="polite">Hint: Use ← → to switch tools</div>
   <div id="mobile-clear-hint" role="status" aria-live="polite">Hint: Double tap with two fingers to clear</div>
   <div id="overlay">
     <span id="overlay-controls">
