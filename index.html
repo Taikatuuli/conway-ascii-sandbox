@@ -534,7 +534,9 @@
     let next    = new Uint8Array(COLS * ROWS);
     let decay   = new Uint8Array(COLS * ROWS);
     const DECAY_STEPS = 8;
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let reducedMotion = reducedMotionQuery.matches;
+    reducedMotionQuery.addEventListener('change', e => { reducedMotion = e.matches; });
 
     function nextGen(src, dst, cols, rows) {
       for (let r = 0; r < rows; r++) {
