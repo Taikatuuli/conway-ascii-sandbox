@@ -1,6 +1,6 @@
 # Game of Life
 
-Game of Life is a non-player simulation where simple rules create complex, evolving patterns. A cellular automaton created by John Horton Conway in 1970.
+Game of Life is a zero-player simulation that demonstrates how complex life-like  behavior can emerge from simple rules. It was originally created by John Horton Conway in 1970. 
 
 This is my creative take on the game, hope you enjoy it.
 
