@@ -434,13 +434,20 @@
       background: none;
     }
 
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition-duration: 0ms !important;
+        animation-duration: 0ms !important;
+      }
+    }
+
   </style>
 </head>
 <body>
-  <pre id="field"></pre>
-  <div id="top-trigger"></div>
-  <div id="bottom-trigger"></div>
-  <div id="start-screen">
+  <pre id="field" aria-hidden="true"></pre>
+  <div id="top-trigger" aria-hidden="true"></div>
+  <div id="bottom-trigger" aria-hidden="true"></div>
+  <div id="start-screen" role="dialog" aria-modal="true" aria-label="Game of Life — start screen">
     <div id="start-panel">
       <div class="panel-section" style="text-align: center; letter-spacing: 3px; color: #ededed;">GAME OF LIFE</div>
       <div class="panel-section">
@@ -477,18 +484,18 @@
       <a href="https://www.venlainkari.com/" target="_blank" rel="noopener" class="github-link">@venla.ink</a>
     </div>
   </div>
-  <div id="draw-hint">Hint: Click and drag to draw cells</div>
-  <div id="tab-hint">Hint: Use ← → to switch tools</div>
-  <div id="mobile-clear-hint">Hint: Double tap with two fingers to clear</div>
+  <div id="draw-hint" role="status" aria-live="polite">Hint: Click and drag to draw cells</div>
+  <div id="tab-hint" role="status" aria-live="polite">Hint: Use ← → to switch tools</div>
+  <div id="mobile-clear-hint" role="status" aria-live="polite">Hint: Double tap with two fingers to clear</div>
   <div id="overlay">
     <span id="overlay-controls">
-      <button class="overlay-btn" id="btn-cycle">[← →] select tool</button> ·
-      <button class="overlay-btn" id="btn-pause">[SPACE] pause/resume</button> ·
-      <button class="overlay-btn" id="btn-clear">[R] clear canvas</button> ·
-      <button class="overlay-btn" id="btn-help">[H] hide/show tools</button> ·
-      <button class="overlay-btn" id="btn-menu">[ESC] main menu</button>
+      <button type="button" class="overlay-btn" id="btn-cycle" aria-label="Select next tool">Select tool [← →]</button> ·
+      <button type="button" class="overlay-btn" id="btn-pause" aria-label="Pause or resume simulation">Pause/resume [Space]</button> ·
+      <button type="button" class="overlay-btn" id="btn-clear" aria-label="Clear canvas">Clear canvas [R]</button> ·
+      <button type="button" class="overlay-btn" id="btn-help" aria-label="Hide or show tools">Hide/show tools [H]</button> ·
+      <button type="button" class="overlay-btn" id="btn-menu" aria-label="Return to main menu">Main menu [Esc]</button>
     </span>
-    <div id="gen-counter">GEN 0</div>
+    <div id="gen-counter" aria-live="polite" aria-label="Generation counter">GEN 0</div>
   </div>
   <div id="stamp-bar">
     <button type="button" id="toolbar-toggle">▲ tools</button>
