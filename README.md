@@ -17,6 +17,7 @@ This is my creative take on the game, hope you enjoy it.
 ## Built with
 
 - [Superpowers](https://github.com/obra/superpowers) — AI-assisted development tool
+- [Commit Mono](https://commitmono.com) — font, SIL Open Font License 1.1
 
 ## Sources
 
