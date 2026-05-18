@@ -85,7 +85,7 @@
     }
 
     .overlay-btn {
-      color: #999;
+      color: #cccccc;
       padding: 0;
       pointer-events: auto;
     }
@@ -102,14 +102,14 @@
     #top-trigger {
       position: fixed;
       top: 0; left: 0; right: 0;
-      height: 8px;
+      height: 24px;
       z-index: 4;
     }
 
     #bottom-trigger {
       position: fixed;
       bottom: 0; left: 0; right: 0;
-      height: 8px;
+      height: 24px;
       z-index: 4;
     }
 
@@ -157,7 +157,7 @@
         background: rgba(0,0,0,0.95);
         border: 1px solid #333333;
         border-bottom: none;
-        color: #888888;
+        color: #cccccc;
         font-family: 'Commit Mono', 'Courier New', monospace;
         font-size: 13px;
         letter-spacing: 1px;
@@ -168,6 +168,11 @@
         pointer-events: none;
         transition: opacity 350ms;
         white-space: nowrap;
+      }
+
+      #toolbar-toggle:focus-visible {
+        outline: 1px dashed #ffffff;
+        outline-offset: 2px;
       }
     }
 
@@ -213,7 +218,7 @@
     #gen-counter {
       font-family: 'Commit Mono', 'Courier New', monospace;
       font-size: 13px;
-      color: #999;
+      color: #cccccc;
       letter-spacing: 1px;
       flex-shrink: 0;
       white-space: nowrap;
@@ -238,7 +243,7 @@
 
     .stamp-btn {
       border: 1px solid #666666;
-      color: #888888;
+      color: #cccccc;
       padding: 2px 6px;
     }
 
@@ -389,6 +394,11 @@
       content: '[-] ';
     }
 
+    #rules-details summary:focus-visible {
+      outline: 1px dashed #ffffff;
+      outline-offset: 2px;
+    }
+
     #rules-details summary:hover {
       color: #ededed;
     }
@@ -398,7 +408,7 @@
     }
 
     #source-link {
-      color: #555555;
+      color: #888888;
       text-decoration: none;
     }
 
@@ -410,6 +420,11 @@
       color: inherit;
       text-decoration: none;
       transition: all 150ms ease-out;
+    }
+
+    .text-link:focus-visible {
+      outline: 1px dashed #ffffff;
+      outline-offset: 2px;
     }
 
     .text-link:hover {
@@ -461,7 +476,7 @@
   <div id="bottom-trigger" aria-hidden="true"></div>
   <div id="start-screen" role="dialog" aria-modal="true" aria-label="Game of Life — start screen">
     <div id="start-panel">
-      <div class="panel-section" style="text-align: center; letter-spacing: 3px; color: #ededed;">GAME OF LIFE</div>
+      <div class="panel-section" style="text-align: center; letter-spacing: 3px; color: #ededed;"><h1 style="font: inherit; margin: 0;">GAME OF LIFE</h1></div>
       <div class="panel-section">
         <div id="start-subtitle">Game of Life is a non-player simulation where simple rules create complex, evolving patterns. Originally created by <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life" target="_blank" rel="noopener" class="text-link">John Horton Conway in 1970</a>.</div>
       </div>
@@ -507,24 +522,24 @@
       <button type="button" class="overlay-btn" id="btn-help" aria-label="Hide or show tools">Hide/show tools [H]</button> ·
       <button type="button" class="overlay-btn" id="btn-menu" aria-label="Return to main menu">Main menu [Esc]</button>
     </span>
-    <div id="gen-counter" aria-live="polite" aria-label="Generation counter">GEN 0</div>
+    <div id="gen-counter" aria-live="polite" aria-atomic="true" aria-label="Generation counter">GEN 0</div>
   </div>
   <div id="stamp-bar">
-    <button type="button" id="toolbar-toggle">▲ tools</button>
-    <button type="button" class="stamp-btn" id="freehand-btn">DRAW</button>
-<button type="button" class="stamp-btn" data-pattern="blinker">BLINKER</button>
-    <button type="button" class="stamp-btn" data-pattern="glider">GLIDER</button>
-    <button type="button" class="stamp-btn" data-pattern="pulsar">PULSAR</button>
-    <button type="button" class="stamp-btn" data-pattern="gosper">GOSPER GUN</button>
-    <button type="button" class="stamp-btn" data-pattern="diamond">DIAMOND</button>
-    <button type="button" class="stamp-btn stamp-btn-large" data-pattern="linepuffer">LINE PUFFER</button>
-    <button type="button" class="stamp-btn" data-pattern="spacefiller">SPACEFILLER</button>
-    <button type="button" class="stamp-btn" data-pattern="barberpole">BARBERPOLE</button>
-    <button type="button" class="stamp-btn" data-pattern="scrubber">SCRUBBER</button>
-    <button type="button" class="stamp-btn" data-pattern="shipinbottle">SHIP IN BOTTLE</button>
-    <button type="button" class="stamp-btn" data-pattern="enretard">DELAYED</button>
-    <button type="button" class="stamp-btn stamp-btn-large" data-pattern="tumblersynth">TUMBLER SYNTH</button>
-    <button type="button" class="stamp-btn stamp-btn-large" data-pattern="hacksaw">HACKSAW</button>
+    <button type="button" id="toolbar-toggle" aria-expanded="false" aria-controls="stamp-bar">▲ tools</button>
+    <button type="button" class="stamp-btn" id="freehand-btn" aria-pressed="true" aria-label="Draw freehand">DRAW</button>
+<button type="button" class="stamp-btn" data-pattern="blinker" aria-pressed="false" aria-label="Stamp Blinker pattern">BLINKER</button>
+    <button type="button" class="stamp-btn" data-pattern="glider" aria-pressed="false" aria-label="Stamp Glider pattern">GLIDER</button>
+    <button type="button" class="stamp-btn" data-pattern="pulsar" aria-pressed="false" aria-label="Stamp Pulsar pattern">PULSAR</button>
+    <button type="button" class="stamp-btn" data-pattern="gosper" aria-pressed="false" aria-label="Stamp Gosper Gun pattern">GOSPER GUN</button>
+    <button type="button" class="stamp-btn" data-pattern="diamond" aria-pressed="false" aria-label="Stamp Diamond pattern">DIAMOND</button>
+    <button type="button" class="stamp-btn stamp-btn-large" data-pattern="linepuffer" aria-pressed="false" aria-label="Stamp Line Puffer pattern">LINE PUFFER</button>
+    <button type="button" class="stamp-btn" data-pattern="spacefiller" aria-pressed="false" aria-label="Stamp Spacefiller pattern">SPACEFILLER</button>
+    <button type="button" class="stamp-btn" data-pattern="barberpole" aria-pressed="false" aria-label="Stamp Barberpole pattern">BARBERPOLE</button>
+    <button type="button" class="stamp-btn" data-pattern="scrubber" aria-pressed="false" aria-label="Stamp Scrubber pattern">SCRUBBER</button>
+    <button type="button" class="stamp-btn" data-pattern="shipinbottle" aria-pressed="false" aria-label="Stamp Ship in Bottle pattern">SHIP IN BOTTLE</button>
+    <button type="button" class="stamp-btn" data-pattern="enretard" aria-pressed="false" aria-label="Stamp Delayed pattern">DELAYED</button>
+    <button type="button" class="stamp-btn stamp-btn-large" data-pattern="tumblersynth" aria-pressed="false" aria-label="Stamp Tumbler Synth pattern">TUMBLER SYNTH</button>
+    <button type="button" class="stamp-btn stamp-btn-large" data-pattern="hacksaw" aria-pressed="false" aria-label="Stamp Hacksaw pattern">HACKSAW</button>
   </div>
   <script>
     const field = document.getElementById('field');
@@ -1131,6 +1146,7 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
       overlay.style.transform = helpVisible ? 'translateY(0)' : 'translateY(-100%)';
       stampBar.style.transform = helpVisible ? 'translateY(0)' : 'translateY(100%)';
       stampBar.style.pointerEvents = helpVisible ? 'auto' : 'none';
+      toolbarToggle.setAttribute('aria-expanded', helpVisible ? 'true' : 'false');
     }
 
     const freehandBtn = document.getElementById('freehand-btn');
@@ -1157,6 +1173,8 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
     function selectTool(index) {
       currentToolIndex = ((index % allTools.length) + allTools.length) % allTools.length;
       const btn = allTools[currentToolIndex];
+      allTools.forEach(b => b.setAttribute('aria-pressed', 'false'));
+      btn.setAttribute('aria-pressed', 'true');
       if (btn === freehandBtn) {
         setMode('draw');
       } else {
