@@ -4,7 +4,7 @@ Game of Life is a non-player simulation where simple rules create complex, evolv
 
 This is my creative take on the game, hope you enjoy it.
 
-**[Play it →](https://game-of-life.vercel.app)**
+**[Play it →](https://conway-ascii-sandbox.vercel.app/)**
 
 ---
 
