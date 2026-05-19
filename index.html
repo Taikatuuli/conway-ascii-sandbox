@@ -1069,11 +1069,14 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
       lastDrawR = sr; lastDrawC = sc;
     }, { passive: false });
 
-    field.addEventListener('touchend', () => {
+    function onTouchEnd() {
       if (dragging) { paused = pausedBeforeDraw; }
       dragging = false;
       lastDrawR = -1; lastDrawC = -1;
-    }, { passive: false });
+    }
+
+    field.addEventListener('touchend', onTouchEnd, { passive: false });
+    field.addEventListener('touchcancel', onTouchEnd, { passive: false });
 
     const stampBar = document.getElementById('stamp-bar');
     const toolbarToggle = document.getElementById('toolbar-toggle');
