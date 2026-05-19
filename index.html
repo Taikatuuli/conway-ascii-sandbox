@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Game of Life</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <style>
     @font-face {
       font-family: 'Commit Mono';
@@ -174,6 +172,26 @@
       }
     
 
+    #draw-hint {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'Commit Mono', 'Courier New', monospace;
+      font-size: 20px;
+      color: #ffffff;
+      letter-spacing: 3px;
+      pointer-events: none;
+      z-index: 11;
+      opacity: 0;
+      transition: opacity 600ms;
+      white-space: nowrap;
+    }
+
+    #draw-hint.visible {
+      opacity: 1;
+    }
+
     #tab-hint {
       position: fixed;
       top: 40px;
@@ -189,12 +207,12 @@
       transition: opacity 600ms;
     }
 
-    @media (min-width: 601px) {
-      #draw-hint, #tab-hint { display: none; }
-    }
-
     #tab-hint.visible {
       opacity: 1;
+    }
+
+    @media (min-width: 601px) {
+      #draw-hint, #tab-hint { display: none; }
     }
 
     #gen-counter {
@@ -246,26 +264,6 @@
       outline-offset: 2px;
     }
 
-    #stamp-hint {
-      color: #888888;
-      font-size: 13px;
-      margin-left: 12px;
-      display: none;
-    }
-
-    @keyframes stamp-btn-pulse {
-      0%   { color: #888888; border-color: #666666; background: none; }
-      70%  { color: #bbbbbb; border-color: #bbbbbb; background: rgba(255,255,255,0.04); }
-      100% { color: #888888; border-color: #666666; background: none; }
-    }
-
-    .stamp-btn.pulsing {
-      animation: stamp-btn-pulse 0.7s ease-in forwards;
-    }
-
-    #stamp-hint.visible {
-      display: inline;
-    }
 
     #start-screen {
       position: fixed;
@@ -311,13 +309,6 @@
     }
 
 
-    #start-title {
-      color: #ffffff;
-      font-size: 13px;
-      letter-spacing: 3px;
-      text-align: center;
-      margin-bottom: 4px;
-    }
 
     #start-subtitle {
       color: #ededed;
@@ -326,7 +317,7 @@
       text-align: center;
     }
 
-    .start-rules, .start-controls {
+    .start-rules {
       color: #ededed;
     }
 
@@ -350,10 +341,6 @@
       margin-top: 8px;
     }
 
-    .rules-intro {
-      margin: 6px 0 4px 0;
-      color: #ededed;
-    }
 
     #rules-details summary {
       cursor: pointer;
@@ -391,14 +378,6 @@
       color: #ededed;
     }
 
-    #source-link {
-      color: #888888;
-      text-decoration: none;
-    }
-
-    #source-link:hover {
-      color: #ffffff;
-    }
 
     .text-link {
       color: inherit;
