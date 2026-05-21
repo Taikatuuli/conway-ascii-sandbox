@@ -172,25 +172,6 @@
       }
     
 
-    #draw-hint {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-family: 'Commit Mono', 'Courier New', monospace;
-      font-size: 20px;
-      color: #ffffff;
-      letter-spacing: 3px;
-      pointer-events: none;
-      z-index: 11;
-      opacity: 0;
-      transition: opacity 600ms;
-      white-space: nowrap;
-    }
-
-    #draw-hint.visible {
-      opacity: 1;
-    }
 
     #tab-hint {
       position: fixed;
@@ -212,7 +193,7 @@
     }
 
     @media (min-width: 601px) {
-      #draw-hint, #tab-hint { display: none; }
+      #tab-hint { display: none; }
     }
 
     #gen-counter {
@@ -477,7 +458,6 @@
       <a href="https://github.com/Taikatuuli/conway-ascii-sandbox" target="_blank" rel="noopener" class="text-link">GitHub Repo</a>
     </div>
   </div>
-  <div id="draw-hint" role="status" aria-live="polite">Hint: Click and drag to draw cells</div>
   <div id="tab-hint" role="status" aria-live="polite">Hint: Use ← → to switch tools</div>
   <div id="mobile-clear-hint" role="status" aria-live="polite">Hint: Double tap with two fingers to clear</div>
   <div id="overlay">
@@ -857,9 +837,6 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
       setTimeout(() => {
         overlay.style.transform = 'translateY(0)';
       }, 1000);
-      drawHintTimer = setTimeout(() => {
-        drawHint.classList.add('visible');
-      }, 1400);
     }
 
     function restartGame() {
@@ -879,9 +856,7 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
       toolbarToggle.textContent = '▲ tools';
       toolbarOpen = false;
       mobileDrawCount = 0;
-      clearTimeout(drawHintTimer);
       clearTimeout(tabHintTimer);
-      drawHint.classList.remove('visible');
       tabHint.classList.remove('visible');
       mobileClearHint.classList.remove('visible');
       startScreen.style.opacity = '1';
@@ -929,9 +904,6 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
 
     let pausedBeforeDraw = false;
     let freehandUseCount = 0;
-    const drawHint = document.getElementById('draw-hint');
-    let drawHintTimer = null;
-
     const tabHint = document.getElementById('tab-hint');
     let tabHintTimer = null;
 
@@ -943,8 +915,6 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
 
     field.addEventListener('mousedown', e => {
       if (startScreenVisible) return;
-      clearTimeout(drawHintTimer);
-      drawHint.classList.remove('visible');
       if (activePattern) {
         e.preventDefault();
         ghostCells.forEach(({ r, c }) => { current[r * COLS + c] = 1; });
@@ -1029,8 +999,6 @@ $27b2o39b3o42b$5b3o20b2o83b$7bo3bo22b2o77b$6bo3b2o22bobo14bo61b$10bobo
         lastTwoFingerTap = now;
         return;
       }
-      clearTimeout(drawHintTimer);
-      drawHint.classList.remove('visible');
       const touch = e.touches[0];
       const { r, c, valid } = cellAt({ clientX: touch.clientX, clientY: touch.clientY });
       lastMouseR = r; lastMouseC = c;
