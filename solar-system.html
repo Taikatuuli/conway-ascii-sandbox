@@ -223,6 +223,133 @@
     }
   }
 ];
+
+// ── Constants ────────────────────────────────────────────────────────────────
+const FULL_VB   = [-700, -350, 1400, 700];
+const ZOOM_W    = 350;
+const ZOOM_H    = 175;
+const SPEED_SCALE = 6;       // simulated days per real second
+const ZOOM_DURATION = 300;   // ms
+
+const SVG = document.getElementById('solar-system');
+
+// ── Stars ────────────────────────────────────────────────────────────────────
+function initStars() {
+  const g = document.getElementById('stars');
+  const rng = (min, max) => min + Math.random() * (max - min);
+  for (let i = 0; i < 200; i++) {
+    const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    c.setAttribute('cx', rng(-700, 700));
+    c.setAttribute('cy', rng(-350, 350));
+    const r = Math.random() < 0.15 ? rng(0.8, 1.4) : rng(0.3, 0.8);
+    c.setAttribute('r', r);
+    c.setAttribute('fill', `rgba(255,255,255,${rng(0.3, 0.9).toFixed(2)})`);
+    g.appendChild(c);
+  }
+}
+
+// ── Orbit ellipses ───────────────────────────────────────────────────────────
+function initOrbits() {
+  const g = document.getElementById('orbits');
+  for (const p of PLANETS) {
+    const el = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+    // Sun is at one focus; center of ellipse is offset by e * rx from sun
+    el.setAttribute('cx', (-p.e * p.orbitRx).toFixed(1));
+    el.setAttribute('cy', '0');
+    el.setAttribute('rx', p.orbitRx);
+    el.setAttribute('ry', p.orbitRy);
+    el.setAttribute('fill', 'none');
+    el.setAttribute('stroke', 'rgba(255,255,255,0.12)');
+    el.setAttribute('stroke-width', '0.5');
+    g.appendChild(el);
+  }
+}
+
+initStars();
+initOrbits();
+
+// ── Keplerian initial angle ───────────────────────────────────────────────────
+function computeInitialAngle(planet) {
+  const J2000 = Date.UTC(2000, 0, 1, 12, 0, 0); // 2000-Jan-1.5
+  const d = (Date.now() - J2000) / 86400000;     // days since J2000
+
+  // Mean anomaly in radians (M0 is mean longitude at J2000, degrees)
+  const Mraw = (planet.M0 + planet.n * d) % 360;
+  const M = ((Mraw % 360) + 360) % 360;
+  const Mrad = M * Math.PI / 180;
+
+  // Eccentric anomaly via fixed-point iteration
+  let E = Mrad;
+  for (let i = 0; i < 5; i++) E = Mrad + planet.e * Math.sin(E);
+
+  // True anomaly
+  const nu = 2 * Math.atan2(
+    Math.sqrt(1 + planet.e) * Math.sin(E / 2),
+    Math.sqrt(1 - planet.e) * Math.cos(E / 2)
+  );
+
+  // Add argument of perihelion so planet is at the right orbital phase
+  return nu + planet.w * Math.PI / 180;
+}
+
+// ── Planet state ──────────────────────────────────────────────────────────────
+// Each entry: { data, angle, x, y, orbitCx, el }
+let state = [];
+
+function initPlanets() {
+  const g = document.getElementById('planets');
+  for (const p of PLANETS) {
+    const orbitCx = -p.e * p.orbitRx; // focus offset
+    const angle   = computeInitialAngle(p);
+    const x = orbitCx + p.orbitRx * Math.cos(angle);
+    const y = p.orbitRy * Math.sin(angle);
+
+    const g2 = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g2.setAttribute('transform', `translate(${x.toFixed(2)}, ${y.toFixed(2)})`);
+    g2.style.cursor = 'pointer';
+    g2.style.willChange = 'transform';
+
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('r', p.size);
+    circle.setAttribute('fill', p.color);
+
+    // Invisible larger hit area for easier clicking
+    const hit = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    hit.setAttribute('r', Math.max(p.size + 8, 16));
+    hit.setAttribute('fill', 'transparent');
+
+    g2.appendChild(circle);
+    g2.appendChild(hit);
+    g.appendChild(g2);
+
+    const s = { data: p, angle, x, y, orbitCx, el: g2 };
+    state.push(s);
+    g2.addEventListener('click', () => onPlanetClick(s));
+  }
+}
+
+initPlanets();
+
+// ── Animation ─────────────────────────────────────────────────────────────────
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+let lastTs = null;
+
+function tick(ts) {
+  const dt = lastTs ? (ts - lastTs) / 1000 : 0;
+  lastTs = ts;
+
+  for (const s of state) {
+    // Advance angle by mean motion: degrees/day → radians/second × dt
+    s.angle += s.data.n * (Math.PI / 180) * SPEED_SCALE * dt;
+    s.x = s.orbitCx + s.data.orbitRx * Math.cos(s.angle);
+    s.y = s.data.orbitRy * Math.sin(s.angle);
+    s.el.setAttribute('transform', `translate(${s.x.toFixed(2)}, ${s.y.toFixed(2)})`);
+  }
+
+  requestAnimationFrame(tick);
+}
+
+requestAnimationFrame(tick);
   </script>
 </body>
 </html>
