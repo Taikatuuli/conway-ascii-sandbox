@@ -106,6 +106,13 @@
       outline: 2px solid #7a8fa8;
       outline-offset: 2px;
     }
+
+    @media (prefers-reduced-motion: reduce) {
+      #fact-sheet,
+      #fact-sheet.open {
+        transition: none !important;
+      }
+    }
   </style>
 </head>
 <body>
