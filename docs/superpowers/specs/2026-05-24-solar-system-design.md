@@ -35,15 +35,28 @@ No external libraries. No build tooling.
 - Each planet has an SVG `<ellipse>` orbit line (stroke only, no fill).
 - Each planet body is an SVG `<circle>` element with a fill color for now. When 3D renders are ready, replace each `<circle>` with an SVG `<image href="...">` of the same size — no other code changes needed.
 - Orbit radii are spaced **logarithmically** so inner planets aren't crushed together and outer planets stay on screen.
-- Orbital speeds are **proportional to real periods** (Mercury fast, Neptune barely crawling), scaled so all motion is visible.
+- Orbit ellipses use **real eccentricity values** from NASA/JPL Keplerian elements — Mercury's orbit is noticeably elliptical, most others are nearly circular.
+- Orbital speeds use **mean motion** (constant angular speed derived from real periods) — accurate enough visually; full Kepler's equation per-frame is not needed.
 
 ---
+
+## Orbital Position Computation
+
+On page load, each planet's **starting angle** is computed from today's date using simplified Keplerian elements (source: NASA/JPL "Keplerian Elements for Approximate Positions of the Major Planets"):
+
+1. Compute days since J2000.0 epoch (2000-Jan-1.5): `d = (today - J2000) / 86400000`
+2. For each planet: `M = M0 + n * d` (mean anomaly from mean longitude `M0` and mean motion `n` in degrees/day)
+3. Solve Kepler's equation for eccentric anomaly `E`: `E = M + e * sin(M)` (iterate 3–5 times for convergence)
+4. Convert to true anomaly `ν`: `tan(ν/2) = sqrt((1+e)/(1-e)) * tan(E/2)`
+5. Map `ν` to SVG ellipse angle (adjusting for argument of perihelion so perihelion aligns with the correct point on the display ellipse)
+
+The `requestAnimationFrame` loop then advances each planet by its mean motion each frame — no per-frame Kepler solve needed.
 
 ## Animation
 
 Single `requestAnimationFrame` loop. Each frame:
 
-1. Advance each planet's angle by its orbital speed (radians per frame, derived from real period ratios).
+1. Advance each planet's angle by its mean motion (degrees/day converted to radians/frame at 60fps).
 2. Compute `x, y` from the ellipse parametric equation: `x = cx + rx * cos(angle)`, `y = cy + ry * sin(angle)`.
 3. Update each planet's SVG `transform` attribute.
 
@@ -99,9 +112,14 @@ Each planet object contains:
   name: "Earth",
   color: "#4fa3e0",          // placeholder fill color
   orbitRx: 220,              // SVG units, logarithmically scaled
-  orbitRy: 44,               // = orbitRx / 5
-  orbitalPeriod: 365.25,     // days (used to compute speed ratio)
+  orbitRy: 44,               // = orbitRx / 5 (display — aspect ratio of angled view)
   size: 10,                  // planet radius in SVG units
+  // Keplerian elements (NASA/JPL J2000 values)
+  a: 1.00000011,             // semi-major axis (AU)
+  e: 0.01671022,             // eccentricity
+  M0: 100.46435,             // mean longitude at J2000 (degrees)
+  n: 0.98560028,             // mean motion (degrees/day)
+  w: 102.94719,              // longitude of perihelion (degrees)
   facts: {
     diameter: "12,742 km",
     distanceFromSun: "149.6 million km",
@@ -129,5 +147,5 @@ solar-system.html    ← entire project lives here
 - 3D planet images (user will swap in later via `<image href="...">`)
 - Pluto
 - Moons orbiting planets
-- Real-time accurate planet positions
+- Full Kepler's equation per-frame (mean motion is sufficient visually)
 - Mobile touch handling (can be added later)
