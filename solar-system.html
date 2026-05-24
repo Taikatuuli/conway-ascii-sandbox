@@ -334,22 +334,93 @@ initPlanets();
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 let lastTs = null;
 
+// ── Zoom state ────────────────────────────────────────────────────────────────
+let currentVB     = [...FULL_VB];
+let zoomedPlanet  = null;
+let isZoomingIn   = false;
+let isZoomingOut  = false;
+let zoomStart     = null;
+let fromVB        = null;
+
+function easeInOutCubic(t) {
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+function lerpVB(from, to, t) {
+  return from.map((v, i) => lerp(v, to[i], t));
+}
+
+function setVB(vb) {
+  SVG.setAttribute('viewBox', vb.join(' '));
+  currentVB = vb;
+}
+
+function getTargetVB(s) {
+  // Place planet at ~35% from left of the zoomed view (visible behind fact sheet)
+  return [s.x - ZOOM_W * 0.35, s.y - ZOOM_H / 2, ZOOM_W, ZOOM_H];
+}
+
 function tick(ts) {
   const dt = lastTs ? (ts - lastTs) / 1000 : 0;
   lastTs = ts;
 
+  // Update all planet positions
   for (const s of state) {
-    // Advance angle by mean motion: degrees/day → radians/second × dt
     s.angle += s.data.n * (Math.PI / 180) * SPEED_SCALE * dt;
     s.x = s.orbitCx + s.data.orbitRx * Math.cos(s.angle);
     s.y = s.data.orbitRy * Math.sin(s.angle);
     s.el.setAttribute('transform', `translate(${s.x.toFixed(2)}, ${s.y.toFixed(2)})`);
   }
 
+  // Zoom in
+  if (isZoomingIn) {
+    const t = Math.min((ts - zoomStart) / ZOOM_DURATION, 1);
+    setVB(lerpVB(fromVB, getTargetVB(zoomedPlanet), easeInOutCubic(t)));
+    if (t >= 1) isZoomingIn = false;
+  // Track planet continuously while zoomed
+  } else if (zoomedPlanet && !isZoomingOut) {
+    setVB(getTargetVB(zoomedPlanet));
+  }
+
+  // Zoom out
+  if (isZoomingOut) {
+    const t = Math.min((ts - zoomStart) / ZOOM_DURATION, 1);
+    setVB(lerpVB(fromVB, FULL_VB, easeInOutCubic(t)));
+    if (t >= 1) {
+      isZoomingOut = false;
+      setVB([...FULL_VB]);
+    }
+  }
+
+  if (!prefersReducedMotion.matches) requestAnimationFrame(tick);
+}
+
+function zoomOut() {
+  fromVB       = [...currentVB];
+  isZoomingOut = true;
+  isZoomingIn  = false;
+  zoomStart    = performance.now();
+  zoomedPlanet = null;
+}
+
+function onPlanetClick(s) {
+  if (zoomedPlanet === s) return;
+  zoomedPlanet = s;
+  fromVB       = [...currentVB];
+  isZoomingIn  = true;
+  isZoomingOut = false;
+  zoomStart    = performance.now();
+}
+
+if (!prefersReducedMotion.matches) {
   requestAnimationFrame(tick);
 }
 
-requestAnimationFrame(tick);
+prefersReducedMotion.addEventListener('change', (e) => {
+  if (!e.matches) requestAnimationFrame(tick);
+});
   </script>
 </body>
 </html>
