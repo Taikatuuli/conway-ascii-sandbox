@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solar System</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #000;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    #solar-system {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #fact-sheet {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 40%;
+      height: 100%;
+      background: rgba(5, 8, 20, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      color: #e0e6f0;
+      padding: 52px 36px 36px;
+      overflow-y: auto;
+      z-index: 10;
+      transform: translateX(100%);
+    }
+
+    #fact-close {
+      position: absolute;
+      top: 14px;
+      right: 18px;
+      background: none;
+      border: none;
+      color: #7a8fa8;
+      font-size: 30px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+    #fact-close:hover { color: #fff; }
+
+    #fact-name {
+      font-size: 44px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 24px;
+      color: #fff;
+    }
+
+    #fact-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .stat {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 12px 16px;
+    }
+    .stat-label {
+      display: block;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #556a82;
+      margin-bottom: 4px;
+    }
+    .stat-value {
+      font-size: 17px;
+      font-weight: 600;
+      color: #d0dcec;
+    }
+
+    .fact-section { margin-bottom: 28px; }
+    .fact-section h2 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #556a82;
+      margin-bottom: 10px;
+    }
+    .fact-section p {
+      font-size: 14px;
+      line-height: 1.7;
+      color: #a8bcce;
+    }
+  </style>
+</head>
+<body>
+  <svg id="solar-system"
+       viewBox="-700 -350 1400 700"
+       preserveAspectRatio="xMidYMid meet">
+    <g id="stars"></g>
+    <g id="orbits"></g>
+    <circle id="sun" cx="0" cy="0" r="22" fill="#FDB813" />
+    <g id="planets"></g>
+  </svg>
+
+  <div id="fact-sheet" role="complementary" aria-label="Planet fact sheet">
+    <button id="fact-close" aria-label="Close fact sheet">×</button>
+    <h1 id="fact-name"></h1>
+    <div id="fact-stats">
+      <div class="stat">
+        <span class="stat-label">Diameter</span>
+        <span class="stat-value" id="fact-diameter"></span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Distance from Sun</span>
+        <span class="stat-value" id="fact-distance"></span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Moons</span>
+        <span class="stat-value" id="fact-moons"></span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Orbital Period</span>
+        <span class="stat-value" id="fact-period"></span>
+      </div>
+    </div>
+    <div class="fact-section">
+      <h2>Discovery &amp; History</h2>
+      <p id="fact-discovery"></p>
+    </div>
+    <div class="fact-section">
+      <h2>Significance for Humans</h2>
+      <p id="fact-significance"></p>
+    </div>
+  </div>
+
+  <script>
+    // tasks fill this in
+  </script>
+</body>
+</html>
