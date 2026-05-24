@@ -97,6 +97,15 @@
       line-height: 1.7;
       color: #a8bcce;
     }
+
+    #fact-sheet.open {
+      transform: translateX(0);
+    }
+
+    #fact-close:focus-visible {
+      outline: 2px solid #7a8fa8;
+      outline-offset: 2px;
+    }
   </style>
 </head>
 <body>
@@ -329,6 +338,7 @@ function initPlanets() {
 }
 
 initPlanets();
+document.getElementById('fact-close').addEventListener('click', zoomOut);
 
 // ── Animation ─────────────────────────────────────────────────────────────────
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -397,7 +407,27 @@ function tick(ts) {
   if (!prefersReducedMotion.matches) requestAnimationFrame(tick);
 }
 
+const sheet = document.getElementById('fact-sheet');
+
+function openFactSheet(planet) {
+  document.getElementById('fact-name').textContent         = planet.name;
+  document.getElementById('fact-diameter').textContent     = planet.facts.diameter;
+  document.getElementById('fact-distance').textContent     = planet.facts.distanceFromSun;
+  document.getElementById('fact-moons').textContent        = planet.facts.moons;
+  document.getElementById('fact-period').textContent       = planet.facts.orbitalPeriod;
+  document.getElementById('fact-discovery').textContent    = planet.facts.discovery;
+  document.getElementById('fact-significance').textContent = planet.facts.significance;
+  sheet.style.transition = 'transform 300ms cubic-bezier(0.215, 0.61, 0.355, 1)';
+  sheet.classList.add('open');
+}
+
+function closeFactSheet() {
+  sheet.style.transition = 'transform 240ms cubic-bezier(0.215, 0.61, 0.355, 1)';
+  sheet.classList.remove('open');
+}
+
 function zoomOut() {
+  closeFactSheet();
   fromVB       = [...currentVB];
   isZoomingOut = true;
   isZoomingIn  = false;
@@ -412,6 +442,7 @@ function onPlanetClick(s) {
   isZoomingIn  = true;
   isZoomingOut = false;
   zoomStart    = performance.now();
+  openFactSheet(s.data);
 }
 
 if (!prefersReducedMotion.matches) {
