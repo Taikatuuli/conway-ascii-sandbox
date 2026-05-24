@@ -1,0 +1,756 @@
+# Solar System Webpage Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Build a standalone `solar-system.html` showing all 8 planets orbiting the sun with real-time Keplerian starting positions, click-to-zoom, and a sliding fact sheet panel.
+
+**Architecture:** Single HTML file — SVG fills the viewport for the simulation; a fixed `<div>` overlay handles the fact sheet. Planet starting angles are computed from today's date using NASA/JPL Keplerian elements. One `requestAnimationFrame` loop advances all orbits and drives the SVG viewBox zoom. The fact sheet slides in/out via CSS transitions.
+
+**Tech Stack:** Vanilla HTML, CSS, SVG, JavaScript. No dependencies, no build step.
+
+> **Note on testing:** This is a single-file browser app with no test runner. Each task ends with a manual browser verification step — open `solar-system.html` by double-clicking it in Finder or dragging it into a browser tab.
+
+---
+
+### Task 1: HTML Scaffold + CSS Base
+
+**Files:**
+- Create: `solar-system.html`
+
+- [ ] **Step 1: Create the file**
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solar System</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #000;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    #solar-system {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #fact-sheet {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 40%;
+      height: 100%;
+      background: rgba(5, 8, 20, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      color: #e0e6f0;
+      padding: 52px 36px 36px;
+      overflow-y: auto;
+      z-index: 10;
+      transform: translateX(100%);
+    }
+
+    #fact-close {
+      position: absolute;
+      top: 14px;
+      right: 18px;
+      background: none;
+      border: none;
+      color: #7a8fa8;
+      font-size: 30px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+    #fact-close:hover { color: #fff; }
+
+    #fact-name {
+      font-size: 44px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 24px;
+      color: #fff;
+    }
+
+    #fact-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .stat {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 12px 16px;
+    }
+    .stat-label {
+      display: block;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #556a82;
+      margin-bottom: 4px;
+    }
+    .stat-value {
+      font-size: 17px;
+      font-weight: 600;
+      color: #d0dcec;
+    }
+
+    .fact-section { margin-bottom: 28px; }
+    .fact-section h2 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #556a82;
+      margin-bottom: 10px;
+    }
+    .fact-section p {
+      font-size: 14px;
+      line-height: 1.7;
+      color: #a8bcce;
+    }
+  </style>
+</head>
+<body>
+  <svg id="solar-system"
+       viewBox="-700 -350 1400 700"
+       preserveAspectRatio="xMidYMid meet">
+    <g id="stars"></g>
+    <g id="orbits"></g>
+    <circle id="sun" cx="0" cy="0" r="22" fill="#FDB813" />
+    <g id="planets"></g>
+  </svg>
+
+  <div id="fact-sheet" role="complementary" aria-label="Planet fact sheet">
+    <button id="fact-close" aria-label="Close fact sheet">×</button>
+    <h1 id="fact-name"></h1>
+    <div id="fact-stats">
+      <div class="stat">
+        <span class="stat-label">Diameter</span>
+        <span class="stat-value" id="fact-diameter"></span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Distance from Sun</span>
+        <span class="stat-value" id="fact-distance"></span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Moons</span>
+        <span class="stat-value" id="fact-moons"></span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Orbital Period</span>
+        <span class="stat-value" id="fact-period"></span>
+      </div>
+    </div>
+    <div class="fact-section">
+      <h2>Discovery &amp; History</h2>
+      <p id="fact-discovery"></p>
+    </div>
+    <div class="fact-section">
+      <h2>Significance for Humans</h2>
+      <p id="fact-significance"></p>
+    </div>
+  </div>
+
+  <script>
+    // tasks fill this in
+  </script>
+</body>
+</html>
+```
+
+- [ ] **Step 2: Open in browser and verify**
+
+Open `solar-system.html`. Expect: black page, nothing visible yet (SVG is present but empty). No console errors.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add solar-system.html
+git commit -m "feat: add solar system HTML scaffold and CSS"
+```
+
+---
+
+### Task 2: PLANETS Constant
+
+**Files:**
+- Modify: `solar-system.html` — replace `// tasks fill this in` with the PLANETS constant
+
+- [ ] **Step 1: Add the PLANETS constant inside the `<script>` tag**
+
+```js
+const PLANETS = [
+  {
+    name: 'Mercury', color: '#b5b5b5', orbitRx: 60, orbitRy: 12, size: 4,
+    e: 0.20563, M0: 174.7948, n: 4.09234, w: 77.4552,
+    facts: {
+      diameter: '4,879 km', distanceFromSun: '57.9 million km',
+      moons: 0, orbitalPeriod: '88 days',
+      discovery: 'Known since antiquity and visible to the naked eye. Giovanni Zupi first observed Mercury through a telescope in 1639. NASA\'s MESSENGER spacecraft orbited it from 2011 to 2015, mapping its surface in detail.',
+      significance: 'Mercury\'s orbital precession — 43 arcseconds per century left unexplained by Newtonian mechanics — was one of the earliest experimental confirmations of Einstein\'s general theory of relativity.'
+    }
+  },
+  {
+    name: 'Venus', color: '#e8cda0', orbitRx: 132, orbitRy: 26, size: 7,
+    e: 0.00677, M0: 50.4161, n: 1.60214, w: 131.5637,
+    facts: {
+      diameter: '12,104 km', distanceFromSun: '108.2 million km',
+      moons: 0, orbitalPeriod: '225 days',
+      discovery: 'Visible to the naked eye since antiquity, known as the \'morning star\' and \'evening star\'. Galileo observed its phases in 1610. The Soviet Venera 7 became the first spacecraft to land on another planet in 1970.',
+      significance: 'Venus\'s runaway greenhouse effect — surface temperatures of 465 °C despite moderate sunlight — is a critical reference point for understanding climate tipping points on Earth.'
+    }
+  },
+  {
+    name: 'Earth', color: '#4fa3e0', orbitRx: 169, orbitRy: 34, size: 7,
+    e: 0.01671, M0: 100.4644, n: 0.98561, w: 102.9373,
+    facts: {
+      diameter: '12,742 km', distanceFromSun: '149.6 million km',
+      moons: 1, orbitalPeriod: '365.25 days',
+      discovery: 'Humanity\'s home. The understanding that Earth orbits the Sun was confirmed by Copernicus in 1543 and later by Galileo\'s observations of planetary phases and Jupiter\'s moons.',
+      significance: 'The only known planet to harbor life. Earth\'s precise distance from the Sun, liquid water, magnetic field, and Moon-stabilized axial tilt together create conditions uniquely suited to complex biology.'
+    }
+  },
+  {
+    name: 'Mars', color: '#c1440e', orbitRx: 217, orbitRy: 43, size: 5,
+    e: 0.09341, M0: 355.4333, n: 0.52403, w: 336.0602,
+    facts: {
+      diameter: '6,779 km', distanceFromSun: '227.9 million km',
+      moons: 2, orbitalPeriod: '687 days',
+      discovery: 'Visible to the naked eye since antiquity. Schiaparelli mapped its surface in 1877. NASA\'s Pathfinder landed the first rover in 1997; multiple rovers have operated there since 2004.',
+      significance: 'Mars is humanity\'s primary target for crewed exploration and potential settlement. Evidence of ancient river valleys and lake beds suggests liquid water once flowed on its surface.'
+    }
+  },
+  {
+    name: 'Jupiter', color: '#c88b3a', orbitRx: 358, orbitRy: 72, size: 18,
+    e: 0.04839, M0: 34.3566, n: 0.08309, w: 14.7539,
+    facts: {
+      diameter: '139,820 km', distanceFromSun: '778.5 million km',
+      moons: 95, orbitalPeriod: '11.9 years',
+      discovery: 'Known since antiquity. Galileo discovered four of Jupiter\'s moons in 1610 — the first proof that not everything in the cosmos orbits Earth, which helped overturn the geocentric model.',
+      significance: 'Jupiter\'s immense gravity deflects and captures many asteroids and comets, shielding the inner solar system. Its moon Europa harbors a subsurface ocean and is one of the best candidates in the solar system for extraterrestrial life.'
+    }
+  },
+  {
+    name: 'Saturn', color: '#e4d191', orbitRx: 428, orbitRy: 86, size: 14,
+    e: 0.05415, M0: 50.0774, n: 0.03346, w: 92.4315,
+    facts: {
+      diameter: '116,460 km', distanceFromSun: '1.43 billion km',
+      moons: 146, orbitalPeriod: '29.5 years',
+      discovery: 'Known since antiquity. Galileo first observed its rings in 1610 but was confused by their appearance. Christiaan Huygens correctly identified the ring system in 1655. The Cassini spacecraft orbited Saturn from 2004 to 2017.',
+      significance: 'Saturn is the least dense planet — it would float in water. Cassini discovered that its moon Enceladus ejects water-vapor plumes containing organic compounds, making it a strong candidate for harboring microbial life.'
+    }
+  },
+  {
+    name: 'Uranus', color: '#7de8e8', orbitRx: 508, orbitRy: 102, size: 11,
+    e: 0.04717, M0: 314.0550, n: 0.01172, w: 170.9643,
+    facts: {
+      diameter: '50,724 km', distanceFromSun: '2.87 billion km',
+      moons: 28, orbitalPeriod: '84 years',
+      discovery: 'The first planet discovered with a telescope, by William Herschel on March 13, 1781. He initially mistook it for a comet. Only Voyager 2 has visited Uranus, flying by in January 1986.',
+      significance: 'Uranus doubled the known size of the solar system and proved that new planets could still be found. Its extreme axial tilt of 98° — likely caused by an ancient giant impact — gives each pole 42 years of continuous sunlight followed by 42 years of darkness.'
+    }
+  },
+  {
+    name: 'Neptune', color: '#5b6fce', orbitRx: 560, orbitRy: 112, size: 10,
+    e: 0.00859, M0: 304.3487, n: 0.00595, w: 44.9710,
+    facts: {
+      diameter: '49,244 km', distanceFromSun: '4.50 billion km',
+      moons: 16, orbitalPeriod: '165 years',
+      discovery: 'Predicted mathematically by Urbain Le Verrier and John Adams in 1845–46 from unexplained wobbles in Uranus\'s orbit. Johann Galle first observed it on September 23, 1846, within 1° of Le Verrier\'s predicted position.',
+      significance: 'Neptune\'s discovery was a triumph of mathematics — pure calculation predicted an unseen world. It has the strongest winds in the solar system at 2,100 km/h, despite receiving very little solar energy.'
+    }
+  }
+];
+```
+
+- [ ] **Step 2: Open in browser and verify**
+
+Open `solar-system.html`. No visual change expected. Open DevTools console — no errors. Type `PLANETS.length` in the console; it should return `8`.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add solar-system.html
+git commit -m "feat: add PLANETS constant with Keplerian elements and facts"
+```
+
+---
+
+### Task 3: Stars + Orbit Ellipses
+
+**Files:**
+- Modify: `solar-system.html` — add after the `PLANETS` constant
+
+- [ ] **Step 1: Add constants, then `initStars` and `initOrbits` functions, then call them**
+
+Add this after the `PLANETS` constant:
+
+```js
+// ── Constants ────────────────────────────────────────────────────────────────
+const FULL_VB   = [-700, -350, 1400, 700];
+const ZOOM_W    = 350;
+const ZOOM_H    = 175;
+const SPEED_SCALE = 6;       // simulated days per real second
+const ZOOM_DURATION = 300;   // ms
+
+const SVG = document.getElementById('solar-system');
+
+// ── Stars ────────────────────────────────────────────────────────────────────
+function initStars() {
+  const g = document.getElementById('stars');
+  const rng = (min, max) => min + Math.random() * (max - min);
+  for (let i = 0; i < 200; i++) {
+    const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    c.setAttribute('cx', rng(-700, 700));
+    c.setAttribute('cy', rng(-350, 350));
+    const r = Math.random() < 0.15 ? rng(0.8, 1.4) : rng(0.3, 0.8);
+    c.setAttribute('r', r);
+    c.setAttribute('fill', `rgba(255,255,255,${rng(0.3, 0.9).toFixed(2)})`);
+    g.appendChild(c);
+  }
+}
+
+// ── Orbit ellipses ───────────────────────────────────────────────────────────
+function initOrbits() {
+  const g = document.getElementById('orbits');
+  for (const p of PLANETS) {
+    const el = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+    // Sun is at one focus; center of ellipse is offset by e * rx from sun
+    el.setAttribute('cx', (-p.e * p.orbitRx).toFixed(1));
+    el.setAttribute('cy', '0');
+    el.setAttribute('rx', p.orbitRx);
+    el.setAttribute('ry', p.orbitRy);
+    el.setAttribute('fill', 'none');
+    el.setAttribute('stroke', 'rgba(255,255,255,0.12)');
+    el.setAttribute('stroke-width', '0.5');
+    g.appendChild(el);
+  }
+}
+
+initStars();
+initOrbits();
+```
+
+- [ ] **Step 2: Open in browser and verify**
+
+Open `solar-system.html`. Expect: star field visible on black background; 8 faint elliptical orbit lines centered slightly off the sun; sun glowing at center. All ellipses visible, with the outermost (Neptune) nearly filling the horizontal extent of the viewport.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add solar-system.html
+git commit -m "feat: add star field and orbit ellipses"
+```
+
+---
+
+### Task 4: Planet Elements + Keplerian Initial Positions
+
+**Files:**
+- Modify: `solar-system.html` — add after `initOrbits` call
+
+- [ ] **Step 1: Add the Keplerian computation function and `initPlanets`**
+
+```js
+// ── Keplerian initial angle ───────────────────────────────────────────────────
+function computeInitialAngle(planet) {
+  const J2000 = Date.UTC(2000, 0, 1, 12, 0, 0); // 2000-Jan-1.5
+  const d = (Date.now() - J2000) / 86400000;     // days since J2000
+
+  // Mean anomaly in radians (M0 is mean longitude at J2000, degrees)
+  const Mraw = (planet.M0 + planet.n * d) % 360;
+  const M = ((Mraw % 360) + 360) % 360;
+  const Mrad = M * Math.PI / 180;
+
+  // Eccentric anomaly via fixed-point iteration
+  let E = Mrad;
+  for (let i = 0; i < 5; i++) E = Mrad + planet.e * Math.sin(E);
+
+  // True anomaly
+  const nu = 2 * Math.atan2(
+    Math.sqrt(1 + planet.e) * Math.sin(E / 2),
+    Math.sqrt(1 - planet.e) * Math.cos(E / 2)
+  );
+
+  // Add argument of perihelion so planet is at the right orbital phase
+  return nu + planet.w * Math.PI / 180;
+}
+
+// ── Planet state ──────────────────────────────────────────────────────────────
+// Each entry: { data, angle, x, y, orbitCx, el }
+let state = [];
+
+function initPlanets() {
+  const g = document.getElementById('planets');
+  for (const p of PLANETS) {
+    const orbitCx = -p.e * p.orbitRx; // focus offset
+    const angle   = computeInitialAngle(p);
+    const x = orbitCx + p.orbitRx * Math.cos(angle);
+    const y = p.orbitRy * Math.sin(angle);
+
+    const g2 = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g2.setAttribute('transform', `translate(${x.toFixed(2)}, ${y.toFixed(2)})`);
+    g2.style.cursor = 'pointer';
+    g2.style.willChange = 'transform';
+
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('r', p.size);
+    circle.setAttribute('fill', p.color);
+
+    // Invisible larger hit area for easier clicking
+    const hit = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    hit.setAttribute('r', Math.max(p.size + 8, 16));
+    hit.setAttribute('fill', 'transparent');
+
+    g2.appendChild(circle);
+    g2.appendChild(hit);
+    g.appendChild(g2);
+
+    const s = { data: p, angle, x, y, orbitCx, el: g2 };
+    state.push(s);
+    g2.addEventListener('click', () => onPlanetClick(s));
+  }
+}
+
+initPlanets();
+```
+
+- [ ] **Step 2: Open in browser and verify**
+
+Open `solar-system.html`. Expect: all 8 planet circles visible on their orbit lines, at positions matching today's real planetary configuration. Hover over planets — cursor should become a pointer. No console errors.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add solar-system.html
+git commit -m "feat: add planets with Keplerian initial positions"
+```
+
+---
+
+### Task 5: Animation Loop
+
+**Files:**
+- Modify: `solar-system.html` — add after `initPlanets()` call
+
+- [ ] **Step 1: Add the animation loop**
+
+```js
+// ── Animation ─────────────────────────────────────────────────────────────────
+let lastTs = null;
+
+function tick(ts) {
+  const dt = lastTs ? (ts - lastTs) / 1000 : 0;
+  lastTs = ts;
+
+  for (const s of state) {
+    // Advance angle by mean motion: degrees/day → radians/second × dt
+    s.angle += s.data.n * (Math.PI / 180) * SPEED_SCALE * dt;
+    s.x = s.orbitCx + s.data.orbitRx * Math.cos(s.angle);
+    s.y = s.data.orbitRy * Math.sin(s.angle);
+    s.el.setAttribute('transform', `translate(${s.x.toFixed(2)}, ${s.y.toFixed(2)})`);
+  }
+
+  requestAnimationFrame(tick);
+}
+
+requestAnimationFrame(tick);
+```
+
+- [ ] **Step 2: Open in browser and verify**
+
+Open `solar-system.html`. Expect: Mercury zips around its orbit roughly every 15 seconds; Jupiter moves slowly but visibly; Neptune barely crawls. All planets maintain their orbit lines. No jitter or flicker.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add solar-system.html
+git commit -m "feat: add requestAnimationFrame orbit animation loop"
+```
+
+---
+
+### Task 6: Click + Zoom Interaction
+
+**Files:**
+- Modify: `solar-system.html` — add zoom state and helpers; update `tick`; add `onPlanetClick`
+
+- [ ] **Step 1: Add zoom state variables after the `let lastTs` line**
+
+```js
+// ── Zoom state ────────────────────────────────────────────────────────────────
+let currentVB     = [...FULL_VB];
+let zoomedPlanet  = null;
+let isZoomingIn   = false;
+let isZoomingOut  = false;
+let zoomStart     = null;
+let fromVB        = null;
+```
+
+- [ ] **Step 2: Add zoom helper functions after the zoom state block**
+
+```js
+function easeInOutCubic(t) {
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+function lerpVB(from, to, t) {
+  return from.map((v, i) => lerp(v, to[i], t));
+}
+
+function setVB(vb) {
+  SVG.setAttribute('viewBox', vb.join(' '));
+  currentVB = vb;
+}
+
+function getTargetVB(s) {
+  // Place planet at ~35% from left of the zoomed view (visible behind fact sheet)
+  return [s.x - ZOOM_W * 0.35, s.y - ZOOM_H / 2, ZOOM_W, ZOOM_H];
+}
+```
+
+- [ ] **Step 3: Replace the `tick` function with this version that handles zoom**
+
+```js
+function tick(ts) {
+  const dt = lastTs ? (ts - lastTs) / 1000 : 0;
+  lastTs = ts;
+
+  // Update all planet positions
+  for (const s of state) {
+    s.angle += s.data.n * (Math.PI / 180) * SPEED_SCALE * dt;
+    s.x = s.orbitCx + s.data.orbitRx * Math.cos(s.angle);
+    s.y = s.data.orbitRy * Math.sin(s.angle);
+    s.el.setAttribute('transform', `translate(${s.x.toFixed(2)}, ${s.y.toFixed(2)})`);
+  }
+
+  // Zoom in
+  if (isZoomingIn) {
+    const t = Math.min((ts - zoomStart) / ZOOM_DURATION, 1);
+    setVB(lerpVB(fromVB, getTargetVB(zoomedPlanet), easeInOutCubic(t)));
+    if (t >= 1) isZoomingIn = false;
+  // Track planet continuously while zoomed
+  } else if (zoomedPlanet && !isZoomingOut) {
+    setVB(getTargetVB(zoomedPlanet));
+  }
+
+  // Zoom out
+  if (isZoomingOut) {
+    const t = Math.min((ts - zoomStart) / ZOOM_DURATION, 1);
+    setVB(lerpVB(fromVB, FULL_VB, easeInOutCubic(t)));
+    if (t >= 1) {
+      isZoomingOut = false;
+      setVB([...FULL_VB]);
+    }
+  }
+
+  requestAnimationFrame(tick);
+}
+```
+
+- [ ] **Step 4: Add `onPlanetClick` and `zoomOut` after the tick function**
+
+```js
+function zoomOut() {
+  fromVB      = [...currentVB];
+  isZoomingOut = true;
+  isZoomingIn  = false;
+  zoomStart    = performance.now();
+  zoomedPlanet = null;
+}
+
+function onPlanetClick(s) {
+  if (zoomedPlanet === s) return;
+  zoomedPlanet  = s;
+  fromVB        = [...currentVB];
+  isZoomingIn   = true;
+  isZoomingOut  = false;
+  zoomStart     = performance.now();
+}
+```
+
+- [ ] **Step 5: Open in browser and verify**
+
+Open `solar-system.html`. Click any planet — the camera should smoothly zoom toward it in ~300ms. The planet should stay centered and keep orbiting. Click another planet while zoomed — the view should re-center on the new planet. (Fact sheet doesn't open yet — that's Task 8.)
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add solar-system.html
+git commit -m "feat: add viewBox zoom interaction with planet tracking"
+```
+
+---
+
+### Task 7: Fact Sheet Open/Close
+
+**Files:**
+- Modify: `solar-system.html` — add `openFactSheet`, `closeFactSheet`; wire up the close button; call `openFactSheet` from `onPlanetClick`
+
+- [ ] **Step 1: Add `openFactSheet` and `closeFactSheet` after `zoomOut`**
+
+```js
+const sheet = document.getElementById('fact-sheet');
+
+function openFactSheet(planet) {
+  document.getElementById('fact-name').textContent     = planet.name;
+  document.getElementById('fact-diameter').textContent = planet.facts.diameter;
+  document.getElementById('fact-distance').textContent = planet.facts.distanceFromSun;
+  document.getElementById('fact-moons').textContent    = planet.facts.moons;
+  document.getElementById('fact-period').textContent   = planet.facts.orbitalPeriod;
+  document.getElementById('fact-discovery').textContent    = planet.facts.discovery;
+  document.getElementById('fact-significance').textContent = planet.facts.significance;
+  sheet.style.transition = 'transform 300ms cubic-bezier(0.215, 0.61, 0.355, 1)';
+  sheet.classList.add('open');
+}
+
+function closeFactSheet() {
+  sheet.style.transition = 'transform 240ms cubic-bezier(0.215, 0.61, 0.355, 1)';
+  sheet.classList.remove('open');
+}
+```
+
+- [ ] **Step 2: Add `.open` class rule to the CSS (inside `<style>`)**
+
+```css
+#fact-sheet.open {
+  transform: translateX(0);
+}
+```
+
+- [ ] **Step 3: Update `onPlanetClick` to open the fact sheet, and `zoomOut` to close it**
+
+Replace the existing `onPlanetClick` and `zoomOut` functions:
+
+```js
+function zoomOut() {
+  closeFactSheet();
+  fromVB       = [...currentVB];
+  isZoomingOut = true;
+  isZoomingIn  = false;
+  zoomStart    = performance.now();
+  zoomedPlanet = null;
+}
+
+function onPlanetClick(s) {
+  if (zoomedPlanet === s) return;
+  zoomedPlanet = s;
+  fromVB       = [...currentVB];
+  isZoomingIn  = true;
+  isZoomingOut = false;
+  zoomStart    = performance.now();
+  openFactSheet(s.data);
+}
+```
+
+- [ ] **Step 4: Wire up the close button (add after `initPlanets()` call)**
+
+```js
+document.getElementById('fact-close').addEventListener('click', zoomOut);
+```
+
+- [ ] **Step 5: Open in browser and verify**
+
+Open `solar-system.html`. Click a planet — the camera zooms in AND the fact sheet slides in from the right (300ms). The planet name, stats, and text sections should all be populated with real data. Click × — the fact sheet slides out (240ms) and the camera zooms back to full view. Click a different planet while zoomed — the view re-centers and fact sheet updates.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add solar-system.html
+git commit -m "feat: add fact sheet open/close with CSS slide transitions"
+```
+
+---
+
+### Task 8: `prefers-reduced-motion` Accessibility
+
+**Files:**
+- Modify: `solar-system.html` — pause animation loop and disable CSS transitions when user prefers reduced motion
+
+- [ ] **Step 1: Add reduced-motion CSS rule (inside `<style>`)**
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  #fact-sheet,
+  #fact-sheet.open {
+    transition: none !important;
+  }
+}
+```
+
+- [ ] **Step 2: Declare `prefersReducedMotion` just before the `let lastTs` line**
+
+```js
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+```
+
+- [ ] **Step 3: Guard both `requestAnimationFrame` calls — the one inside `tick` and the bootstrap call**
+
+Inside `tick`, replace the final `requestAnimationFrame(tick)` with:
+
+```js
+if (!prefersReducedMotion.matches) requestAnimationFrame(tick);
+```
+
+Replace the bootstrap `requestAnimationFrame(tick)` (the call after `initPlanets()`) with:
+
+```js
+if (!prefersReducedMotion.matches) {
+  requestAnimationFrame(tick);
+}
+
+prefersReducedMotion.addEventListener('change', (e) => {
+  if (!e.matches) requestAnimationFrame(tick);
+});
+```
+
+- [ ] **Step 4: Open in browser and verify**
+
+Normal mode: animation runs as before. To test reduced motion on macOS: System Settings → Accessibility → Display → Reduce Motion. Reload `solar-system.html` — planets should be at their correct Keplerian positions but not animate. Fact sheet should still open/close (instantly, no slide). Turn Reduce Motion off — the loop resumes without needing a reload.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add solar-system.html
+git commit -m "feat: add prefers-reduced-motion support"
+```
+
+---
+
+## Self-Review Checklist
+
+### Spec coverage
+
+| Spec requirement | Task |
+|---|---|
+| Single `solar-system.html`, no dependencies | Task 1 |
+| SVG fills viewport | Task 1 |
+| Fact sheet HTML overlay | Task 1 |
+| All 8 planets with Keplerian elements + facts | Task 2 |
+| Flat ellipse perspective (ry = rx/5) | Task 2 (orbitRy values) |
+| Logarithmically spaced orbit radii | Task 2 (orbitRx values) |
+| Real eccentricity in orbit ellipses | Task 3 (cx offset) |
+| 200 stars | Task 3 |
+| Keplerian initial angles from today's date | Task 4 |
+| `will-change: transform` on planet elements | Task 4 |
+| requestAnimationFrame animation, mean motion | Task 5 |
+| Click → viewBox zoom, 300ms ease-in-out | Task 6 |
+| Planet tracking while zoomed | Task 6 |
+| Fact sheet: name, 4 stats, 2 text sections | Tasks 1 + 7 |
+| Fact sheet slide in 300ms ease-out | Task 7 |
+| Close button → slide out 240ms + zoom out | Task 7 |
+| Paired animation timing (zoom + panel = 300ms) | Tasks 6 + 7 |
+| `prefers-reduced-motion` | Task 8 |
