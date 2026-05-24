@@ -47,22 +47,30 @@ Single `requestAnimationFrame` loop. Each frame:
 2. Compute `x, y` from the ellipse parametric equation: `x = cx + rx * cos(angle)`, `y = cy + ry * sin(angle)`.
 3. Update each planet's SVG `transform` attribute.
 
+Planet elements use `will-change: transform` since they update `transform` on every frame.
+
+Orbit easing: `linear` — constant-speed circular motion, the one UI context where linear is correct.
+
 Animation continues uninterrupted when a fact sheet is open.
+
+**Accessibility:** `@media (prefers-reduced-motion: reduce)` pauses the orbit animation loop and disables all transition animations.
 
 ---
 
 ## Click & Zoom Interaction
 
 **On planet click:**
-1. SVG `viewBox` animates smoothly (~600ms, JS lerp via `requestAnimationFrame`) from the full system view to a close-up centered on the clicked planet.
+1. SVG `viewBox` animates (~300ms, `ease-in-out` — on-screen element moving) from the full system view to a close-up centered on the clicked planet.
 2. The target is shifted slightly left to leave space for the fact sheet.
-3. Simultaneously, the fact sheet slides in from the right.
+3. Simultaneously, the fact sheet slides in from the right (~300ms, `ease-out` — element entering the screen).
+
+Zoom and fact sheet use the same duration (300ms) — paired elements rule, they animate as a unit.
 
 The planet continues orbiting during and after the zoom. The viewBox tracks the planet's position each frame while zoomed in, so the planet stays roughly centered.
 
 **On close (× button):**
-1. Fact sheet slides out to the right.
-2. `viewBox` animates back to the full system view.
+1. Fact sheet slides out to the right (~240ms, `ease-out` — ~20% faster than entrance per exit convention).
+2. `viewBox` animates back to the full system view (~300ms, `ease-in-out`).
 
 ---
 
@@ -70,7 +78,7 @@ The planet continues orbiting during and after the zoom. The viewBox tracks the 
 
 **Position:** Fixed right-side overlay, ~40% viewport width.
 **Background:** Semi-transparent dark panel.
-**Animation:** CSS `transform: translateX(100%)` → `translateX(0)` on open; reversed on close.
+**Animation:** CSS `transform: translateX(100%)` → `translateX(0)` on open (300ms, `ease-out`); `translateX(0)` → `translateX(100%)` on close (240ms, `ease-out`).
 
 **Contents (top to bottom):**
 
