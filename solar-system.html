@@ -125,7 +125,7 @@
     <g id="planets"></g>
   </svg>
 
-  <div id="fact-sheet" role="complementary" aria-label="Planet fact sheet">
+  <div id="fact-sheet" role="complementary" aria-label="Planet fact sheet" aria-hidden="true">
     <button id="fact-close" aria-label="Close fact sheet">×</button>
     <h1 id="fact-name"></h1>
     <div id="fact-stats">
@@ -290,8 +290,7 @@ function computeInitialAngle(planet) {
   const d = (Date.now() - J2000) / 86400000;     // days since J2000
 
   // Mean anomaly in radians (M0 is mean longitude at J2000, degrees)
-  const Mraw = (planet.M0 + planet.n * d) % 360;
-  const M = ((Mraw % 360) + 360) % 360;
+  const M = ((planet.M0 + planet.n * d) % 360 + 360) % 360;
   const Mrad = M * Math.PI / 180;
 
   // Eccentric anomaly via fixed-point iteration
@@ -417,6 +416,7 @@ function tick(ts) {
 const sheet = document.getElementById('fact-sheet');
 
 function openFactSheet(planet) {
+  sheet.scrollTop = 0;
   document.getElementById('fact-name').textContent         = planet.name;
   document.getElementById('fact-diameter').textContent     = planet.facts.diameter;
   document.getElementById('fact-distance').textContent     = planet.facts.distanceFromSun;
@@ -424,6 +424,7 @@ function openFactSheet(planet) {
   document.getElementById('fact-period').textContent       = planet.facts.orbitalPeriod;
   document.getElementById('fact-discovery').textContent    = planet.facts.discovery;
   document.getElementById('fact-significance').textContent = planet.facts.significance;
+  sheet.setAttribute('aria-hidden', 'false');
   sheet.style.transition = 'transform 300ms cubic-bezier(0.215, 0.61, 0.355, 1)';
   sheet.classList.add('open');
 }
@@ -431,6 +432,7 @@ function openFactSheet(planet) {
 function closeFactSheet() {
   sheet.style.transition = 'transform 240ms cubic-bezier(0.215, 0.61, 0.355, 1)';
   sheet.classList.remove('open');
+  sheet.setAttribute('aria-hidden', 'true');
 }
 
 function zoomOut() {
@@ -457,7 +459,11 @@ if (!prefersReducedMotion.matches) {
 }
 
 prefersReducedMotion.addEventListener('change', (e) => {
-  if (!e.matches) requestAnimationFrame(tick);
+  if (!e.matches) {
+    isZoomingIn  = false;
+    isZoomingOut = false;
+    requestAnimationFrame(tick);
+  }
 });
   </script>
 </body>
