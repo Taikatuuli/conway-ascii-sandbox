@@ -81,15 +81,26 @@ Word balance is explicitly designed to be tunable after playtesting.
 
 ## Sharing
 
-"Share ↗" opens a small action sheet (positioned below the button) with two options:
+"Share ↗" opens a small action sheet (positioned below the button) containing:
+
+1. An optional **@name input field** — placeholder `your @name (optional)`. Value is remembered in `localStorage` so repeat sharers don't have to retype it. Max 30 characters, no spaces.
+2. **Download image** button
+3. **Copy link** button
+
+### Attribution overlay
+If an @name is entered, the exported PNG and the share-link read-only view both display an attribution line overlaid in the bottom-left corner of the canvas square:
+
+> Made by **@username** · Wordlay
+
+Styled as small white text on a subtle dark scrim (semi-transparent black gradient rising from the bottom edge). If no @name is entered, no overlay is shown.
 
 ### Download PNG
-- `html2canvas` renders the square canvas element to a `<canvas>`.
+- `html2canvas` renders the square canvas element to a `<canvas>`, including the attribution overlay if present.
 - Result is downloaded as `wordlay.png` via a temporary `<a download>` link.
 - Exported image: canvas only (no top bar, no tray). Exactly 1:1 square.
 
 ### Copy Link
-- Poem state is serialised as a compact JSON array: `[{ word, x, y }, ...]` for all placed tiles only.
+- Poem state is serialised as a compact JSON object: `{ tiles: [{ word, x, y }, ...], author: "@username" | null }`.
 - Serialised with `JSON.stringify`, then `btoa()` to base64.
 - Written to `window.location.hash`: `wordlay/#<base64string>`.
 - URL is copied to clipboard via `navigator.clipboard.writeText()`.
@@ -103,8 +114,9 @@ When `window.location.hash` is non-empty on page load:
 
 1. Decode the hash: `JSON.parse(atob(hash))`.
 2. Render the poem in **read-only mode**: tiles positioned as encoded, non-draggable, canvas has a subtle overlay.
-3. Show a **"Make your own →"** button prominently (centred below canvas or overlay button).
-4. Clicking "Make your own →" clears the hash from the URL, generates a fresh random word set, and enters normal interactive mode.
+3. If `author` is present in the decoded state, display the attribution overlay ("Made by @username · Wordlay") in the bottom-left corner of the canvas, matching the PNG export appearance.
+4. Show a **"Make your own →"** button prominently (centred below canvas).
+5. Clicking "Make your own →" clears the hash from the URL, generates a fresh random word set, and enters normal interactive mode.
 
 If hash decoding fails (malformed URL), silently fall back to a normal fresh session.
 
