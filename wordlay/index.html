@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wordlay</title>
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+  <div id="app">
+    <header id="topbar">
+      <span class="logo">Wordlay</span>
+      <div class="topbar-actions">
+        <button id="btn-new-words">🔀 New words</button>
+        <button id="btn-share">Share ↗</button>
+      </div>
+    </header>
+
+    <main id="canvas" role="region" aria-label="Poetry canvas"></main>
+
+    <section id="tray">
+      <div id="pile-container">
+        <div id="pile"></div>
+        <p id="pile-count"></p>
+      </div>
+    </section>
+  </div>
+
+  <!-- Share sheet -->
+  <div id="share-sheet" class="hidden" role="dialog" aria-label="Share your poem">
+    <label for="author-input">your @name (optional)</label>
+    <input id="author-input" type="text" maxlength="30" placeholder="@yourname" autocomplete="off" spellcheck="false">
+    <button id="btn-download">Download image</button>
+    <button id="btn-copy-link">Copy link</button>
+  </div>
+  <div id="share-overlay" class="hidden"></div>
+
+  <!-- Read-only banner shown on share link landing -->
+  <div id="readonly-banner" class="hidden">
+    <button id="btn-make-own">Make your own →</button>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
