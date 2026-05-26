@@ -1,4 +1,5 @@
 // Wordlay — fridge magnet poetry
+// Version: complete
 
 // ─── Word Bank ────────────────────────────────────────────────────────────────
 
