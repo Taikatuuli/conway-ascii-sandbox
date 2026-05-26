@@ -156,3 +156,291 @@ function drawHand() {
   }
   return hand;
 }
+
+// ─── State ────────────────────────────────────────────────────────────────────
+
+let tileIdCounter = 0;
+
+const state = {
+  pile: [],    // [{ word: string, rotation: number }] — index 0 is top of pile
+  canvas: [],  // [{ id: string, word: string, x: number, y: number, rotation: number }]
+  readOnly: false,
+};
+
+function randomRotation() {
+  return parseFloat((Math.random() * 2 - 1).toFixed(2)); // -1.00 to +1.00 degrees
+}
+
+function initSession(hand) {
+  tileIdCounter = 0;
+  state.pile = hand.map(word => ({ word, rotation: randomRotation() }));
+  state.canvas = [];
+  state.readOnly = false;
+}
+
+// ─── Render ───────────────────────────────────────────────────────────────────
+
+const $pile      = document.getElementById('pile');
+const $pileCount = document.getElementById('pile-count');
+const $canvas    = document.getElementById('canvas');
+
+function renderPile() {
+  $pile.innerHTML = '';
+
+  if (state.pile.length === 0) {
+    $pileCount.textContent = 'All words placed';
+    $pile.style.cursor = 'default';
+    return;
+  }
+
+  // Show up to 3 stacked cards, back-to-front
+  const visible = state.pile.slice(0, 3).reverse(); // index 0 of visible = deepest card
+  visible.forEach((item, i) => {
+    const depth = visible.length - 1 - i; // 0 = top card
+    const card = document.createElement('div');
+    card.className = 'pile-card';
+    card.style.transform = `rotate(${depth * 1.5}deg)`;
+    card.style.top  = `${depth * 2}px`;
+    card.style.left = `${depth * 2}px`;
+    card.style.zIndex  = i;
+    card.style.opacity = depth === 0 ? '1' : '0.5';
+    if (depth === 0) {
+      card.textContent = item.word;
+      card.id = 'pile-top';
+    }
+    $pile.appendChild(card);
+  });
+
+  const n = state.pile.length;
+  $pileCount.textContent = `${n} word${n === 1 ? '' : 's'} remaining`;
+}
+
+function renderCanvas() {
+  $canvas.querySelectorAll('.tile').forEach(el => el.remove());
+  state.canvas.forEach(tile => $canvas.appendChild(createTileElement(tile)));
+}
+
+function createTileElement(tile) {
+  const el = document.createElement('div');
+  el.className = 'tile' + (state.readOnly ? ' readonly' : '');
+  el.dataset.id = tile.id;
+  el.textContent = tile.word;
+  el.style.left      = tile.x + 'px';
+  el.style.top       = tile.y + 'px';
+  el.style.transform = `rotate(${tile.rotation}deg)`;
+  if (!state.readOnly) attachCanvasTileDrag(el, tile);
+  return el;
+}
+
+function renderAttribution() {
+  $canvas.querySelector('.attribution')?.remove();
+  const raw = document.getElementById('author-input')?.value?.trim();
+  if (!raw) return;
+  const author = raw.startsWith('@') ? raw : '@' + raw;
+  const el = document.createElement('div');
+  el.className = 'attribution';
+  el.textContent = `Made by ${author} · Wordlay`;
+  $canvas.appendChild(el);
+}
+
+// ─── Drag Utilities ───────────────────────────────────────────────────────────
+
+const GRID = 24;
+
+function snapToGrid(val) {
+  return Math.round(val / GRID) * GRID;
+}
+
+function createFloatingClone(word, x, y) {
+  const el = document.createElement('div');
+  el.className = 'tile dragging';
+  el.textContent = word;
+  el.style.position = 'fixed';
+  el.style.left = x + 'px';
+  el.style.top  = y + 'px';
+  el.style.pointerEvents = 'none';
+  document.body.appendChild(el);
+  return el;
+}
+
+// ─── Canvas Tile Drag ─────────────────────────────────────────────────────────
+
+const DISCARD_EDGE = 20; // px from canvas edge to trigger discard
+
+function attachCanvasTileDrag(el, tile) {
+  el.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const canvasRect = $canvas.getBoundingClientRect();
+    const offsetX = e.clientX - canvasRect.left - tile.x;
+    const offsetY = e.clientY - canvasRect.top  - tile.y;
+
+    el.classList.remove('snapping');
+    el.classList.add('dragging');
+    el.style.zIndex = 1000;
+    el.setPointerCapture(e.pointerId);
+
+    function onMove(ev) {
+      const rawX = ev.clientX - canvasRect.left - offsetX;
+      const rawY = ev.clientY - canvasRect.top  - offsetY;
+      el.style.left = rawX + 'px';
+      el.style.top  = rawY + 'px';
+    }
+
+    function onUp(ev) {
+      el.removeEventListener('pointermove', onMove);
+      el.removeEventListener('pointerup', onUp);
+      el.classList.remove('dragging');
+      el.style.zIndex = '';
+
+      const rawX = ev.clientX - canvasRect.left - offsetX;
+      const rawY = ev.clientY - canvasRect.top  - offsetY;
+      const canvasW = $canvas.offsetWidth;
+      const canvasH = $canvas.offsetHeight;
+
+      const nearEdge =
+        rawX < DISCARD_EDGE || rawY < DISCARD_EDGE ||
+        rawX > canvasW - DISCARD_EDGE || rawY > canvasH - DISCARD_EDGE;
+
+      if (nearEdge) {
+        state.canvas = state.canvas.filter(t => t.id !== tile.id);
+        state.pile.push({ word: tile.word, rotation: tile.rotation });
+        el.remove();
+        renderPile();
+        attachPileDrag();
+      } else {
+        const x = Math.max(0, snapToGrid(rawX));
+        const y = Math.max(0, snapToGrid(rawY));
+        tile.x = x;
+        tile.y = y;
+        el.classList.add('snapping');
+        el.style.left = x + 'px';
+        el.style.top  = y + 'px';
+      }
+    }
+
+    el.addEventListener('pointermove', onMove);
+    el.addEventListener('pointerup', onUp);
+  });
+}
+
+// ─── Pile Interaction ─────────────────────────────────────────────────────────
+
+const DRAG_THRESHOLD = 5; // px movement before gesture becomes a drag
+
+function cyclePile() {
+  if (state.pile.length <= 1) return;
+  state.pile.push(state.pile.shift()); // move top to bottom
+  renderPile();
+  attachPileDrag();
+}
+
+function attachPileDrag() {
+  $pile.removeEventListener('pointerdown', onPilePointerDown);
+  $pile.addEventListener('pointerdown', onPilePointerDown);
+}
+
+function onPilePointerDown(e) {
+  if (state.pile.length === 0) return;
+  e.preventDefault();
+
+  const startX = e.clientX;
+  const startY = e.clientY;
+  let moved = false;
+  let clone = null;
+
+  const topCard = document.getElementById('pile-top');
+  const rect = topCard ? topCard.getBoundingClientRect() : { left: startX, top: startY };
+  const offsetX = startX - rect.left;
+  const offsetY = startY - rect.top;
+
+  function onMove(ev) {
+    if (!moved && Math.hypot(ev.clientX - startX, ev.clientY - startY) > DRAG_THRESHOLD) {
+      moved = true;
+      clone = createFloatingClone(
+        state.pile[0].word,
+        ev.clientX - offsetX,
+        ev.clientY - offsetY
+      );
+    }
+    if (clone) {
+      clone.style.left = (ev.clientX - offsetX) + 'px';
+      clone.style.top  = (ev.clientY - offsetY) + 'px';
+    }
+  }
+
+  function onUp(ev) {
+    window.removeEventListener('pointermove', onMove);
+    window.removeEventListener('pointerup', onUp);
+
+    if (!moved) {
+      cyclePile();
+      return;
+    }
+
+    clone?.remove();
+    clone = null;
+
+    const canvasRect = $canvas.getBoundingClientRect();
+    const overCanvas =
+      ev.clientX >= canvasRect.left && ev.clientX <= canvasRect.right &&
+      ev.clientY >= canvasRect.top  && ev.clientY <= canvasRect.bottom;
+
+    if (overCanvas) {
+      const rawX = ev.clientX - canvasRect.left - offsetX;
+      const rawY = ev.clientY - canvasRect.top  - offsetY;
+      const x = Math.max(0, snapToGrid(rawX));
+      const y = Math.max(0, snapToGrid(rawY));
+
+      const pileItem = state.pile.shift();
+      const id = 'tile-' + (++tileIdCounter);
+      state.canvas.push({ id, word: pileItem.word, x, y, rotation: pileItem.rotation });
+
+      renderPile();
+      attachPileDrag();
+      renderCanvas();
+    }
+  }
+
+  window.addEventListener('pointermove', onMove);
+  window.addEventListener('pointerup', onUp);
+}
+
+// ─── Controls ─────────────────────────────────────────────────────────────────
+
+function newSession() {
+  $canvas.classList.remove('readonly');
+  document.getElementById('readonly-banner').classList.add('hidden');
+  window.location.hash = '';
+  startFreshSession();
+}
+
+document.getElementById('btn-new-words').addEventListener('click', newSession);
+
+// ─── Boot ─────────────────────────────────────────────────────────────────────
+
+function startFreshSession() {
+  const hand = drawHand();
+  initSession(hand);
+  renderPile();
+  attachPileDrag();
+  renderCanvas();
+  const saved = localStorage.getItem('wordlay-author') || '';
+  document.getElementById('author-input').value = saved;
+  renderAttribution();
+}
+
+// Forward declaration — loadSharedPoem implemented in Task 12
+function loadSharedPoem(hash) { return false; }
+
+function boot() {
+  const hash = window.location.hash.slice(1);
+  if (hash) {
+    const loaded = loadSharedPoem(hash);
+    if (loaded) return;
+  }
+  startFreshSession();
+}
+
+document.addEventListener('DOMContentLoaded', boot);
