@@ -435,8 +435,129 @@ function startFreshSession() {
   renderAttribution();
 }
 
-// Forward declaration — loadSharedPoem implemented in Task 12
-function loadSharedPoem(hash) { return false; }
+// ─── Share Sheet ──────────────────────────────────────────────────────────────
+
+const $shareSheet   = document.getElementById('share-sheet');
+const $shareOverlay = document.getElementById('share-overlay');
+const $authorInput  = document.getElementById('author-input');
+
+function openShareSheet() {
+  const saved = localStorage.getItem('wordlay-author') || '';
+  $authorInput.value = saved;
+  $shareSheet.classList.remove('hidden');
+  $shareOverlay.classList.remove('hidden');
+  setTimeout(() => $authorInput.focus(), 50);
+}
+
+function closeShareSheet() {
+  $shareSheet.classList.add('hidden');
+  $shareOverlay.classList.add('hidden');
+}
+
+document.getElementById('btn-share').addEventListener('click', openShareSheet);
+$shareOverlay.addEventListener('click', closeShareSheet);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeShareSheet(); });
+
+$authorInput.addEventListener('input', () => {
+  // Strip spaces live
+  const cleaned = $authorInput.value.replace(/\s/g, '');
+  $authorInput.value = cleaned;
+  const val = cleaned.trim();
+  if (val) {
+    localStorage.setItem('wordlay-author', val);
+  } else {
+    localStorage.removeItem('wordlay-author');
+  }
+  renderAttribution();
+});
+
+// ─── Sharing: Copy Link ───────────────────────────────────────────────────────
+
+function serializeState() {
+  const raw = $authorInput.value.trim();
+  const author = raw ? (raw.startsWith('@') ? raw : '@' + raw) : null;
+  const payload = {
+    tiles: state.canvas.map(t => ({ word: t.word, x: t.x, y: t.y, rotation: t.rotation })),
+    author,
+  };
+  return btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+}
+
+function copyLink() {
+  const encoded = serializeState();
+  const url = window.location.origin + window.location.pathname + '#' + encoded;
+  window.location.hash = encoded;
+
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.getElementById('btn-copy-link');
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = orig; }, 2000);
+  }).catch(() => {
+    window.prompt('Copy this link:', url);
+  });
+}
+
+document.getElementById('btn-copy-link').addEventListener('click', copyLink);
+
+// ─── Share Link Landing ───────────────────────────────────────────────────────
+
+function loadSharedPoem(hash) {
+  let payload;
+  try {
+    payload = JSON.parse(decodeURIComponent(escape(atob(hash))));
+    if (!Array.isArray(payload.tiles)) throw new Error('invalid');
+  } catch {
+    return false; // malformed — fall back to fresh session
+  }
+
+  state.readOnly = true;
+  state.pile = [];
+  state.canvas = payload.tiles.map(t => ({
+    id: 'tile-' + (++tileIdCounter),
+    word: t.word,
+    x: t.x,
+    y: t.y,
+    rotation: t.rotation ?? randomRotation(),
+  }));
+
+  renderPile();
+  renderCanvas();
+  $canvas.classList.add('readonly');
+
+  if (payload.author) {
+    const el = document.createElement('div');
+    el.className = 'attribution';
+    el.textContent = `Made by ${payload.author} · Wordlay`;
+    $canvas.appendChild(el);
+  }
+
+  document.getElementById('readonly-banner').classList.remove('hidden');
+  return true;
+}
+
+document.getElementById('btn-make-own').addEventListener('click', newSession);
+
+// ─── Sharing: Download PNG ────────────────────────────────────────────────────
+
+function downloadPNG() {
+  html2canvas($canvas, {
+    useCORS: true,
+    scale: 2,
+    backgroundColor: '#f9f9f9',
+  }).then(canvasEl => {
+    const link = document.createElement('a');
+    link.download = 'wordlay.png';
+    link.href = canvasEl.toDataURL('image/png');
+    link.click();
+    link.remove();
+  }).catch(err => {
+    console.error('PNG export failed:', err);
+    alert('Export failed — please try again.');
+  });
+}
+
+document.getElementById('btn-download').addEventListener('click', downloadPNG);
 
 function boot() {
   const hash = window.location.hash.slice(1);
