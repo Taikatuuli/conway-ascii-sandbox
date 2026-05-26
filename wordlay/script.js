@@ -193,6 +193,8 @@ function renderPile() {
     return;
   }
 
+  $pile.style.cursor = 'grab';
+
   // Show up to 3 stacked cards, back-to-front
   const visible = state.pile.slice(0, 3).reverse(); // index 0 of visible = deepest card
   visible.forEach((item, i) => {
@@ -355,6 +357,8 @@ function onPilePointerDown(e) {
   const offsetX = startX - rect.left;
   const offsetY = startY - rect.top;
 
+  $pile.setPointerCapture(e.pointerId);
+
   function onMove(ev) {
     if (!moved && Math.hypot(ev.clientX - startX, ev.clientY - startY) > DRAG_THRESHOLD) {
       moved = true;
@@ -371,8 +375,8 @@ function onPilePointerDown(e) {
   }
 
   function onUp(ev) {
-    window.removeEventListener('pointermove', onMove);
-    window.removeEventListener('pointerup', onUp);
+    $pile.removeEventListener('pointermove', onMove);
+    $pile.removeEventListener('pointerup', onUp);
 
     if (!moved) {
       cyclePile();
@@ -403,8 +407,8 @@ function onPilePointerDown(e) {
     }
   }
 
-  window.addEventListener('pointermove', onMove);
-  window.addEventListener('pointerup', onUp);
+  $pile.addEventListener('pointermove', onMove);
+  $pile.addEventListener('pointerup', onUp);
 }
 
 // ─── Controls ─────────────────────────────────────────────────────────────────
