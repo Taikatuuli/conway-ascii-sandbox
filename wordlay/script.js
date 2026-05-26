@@ -456,7 +456,9 @@ function closeShareSheet() {
 
 document.getElementById('btn-share').addEventListener('click', openShareSheet);
 $shareOverlay.addEventListener('click', closeShareSheet);
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeShareSheet(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && !$shareSheet.classList.contains('hidden')) closeShareSheet();
+});
 
 $authorInput.addEventListener('input', () => {
   // Strip spaces live
@@ -480,20 +482,21 @@ function serializeState() {
     tiles: state.canvas.map(t => ({ word: t.word, x: t.x, y: t.y, rotation: t.rotation })),
     author,
   };
-  return btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+  return btoa(JSON.stringify(payload));
 }
 
 function copyLink() {
   const encoded = serializeState();
   const url = window.location.origin + window.location.pathname + '#' + encoded;
-  window.location.hash = encoded;
 
   navigator.clipboard.writeText(url).then(() => {
+    window.location.hash = encoded;
     const btn = document.getElementById('btn-copy-link');
     const orig = btn.textContent;
     btn.textContent = 'Copied!';
     setTimeout(() => { btn.textContent = orig; }, 2000);
   }).catch(() => {
+    window.location.hash = encoded;
     window.prompt('Copy this link:', url);
   });
 }
@@ -505,7 +508,7 @@ document.getElementById('btn-copy-link').addEventListener('click', copyLink);
 function loadSharedPoem(hash) {
   let payload;
   try {
-    payload = JSON.parse(decodeURIComponent(escape(atob(hash))));
+    payload = JSON.parse(atob(hash));
     if (!Array.isArray(payload.tiles)) throw new Error('invalid');
   } catch {
     return false; // malformed — fall back to fresh session
