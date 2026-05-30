@@ -30,11 +30,126 @@
       transition: opacity 600ms;
     }
     #hint.hidden { opacity: 0; }
+
+    #ctrl-trigger {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 24px;
+      z-index: 4;
+    }
+
+    #controls {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: rgba(0,0,0,0.92);
+      border-top: 1px solid #222;
+      padding: 14px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 32px;
+      align-items: center;
+      transform: translateY(100%);
+      transition: transform 300ms ease-out;
+      z-index: 3;
+    }
+
+    #controls.open { transform: translateY(0); }
+
+    .ctrl-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ctrl-label {
+      color: #666;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      min-width: 72px;
+    }
+
+    .ctrl-val {
+      color: #999;
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+      min-width: 36px;
+    }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 120px;
+      height: 2px;
+      background: #333;
+      outline: none;
+      border-radius: 1px;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .ctrl-toggle {
+      display: flex;
+      gap: 4px;
+    }
+
+    .toggle-btn {
+      background: none;
+      border: 1px solid #333;
+      color: #666;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      padding: 3px 8px;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all 150ms;
+      font-family: inherit;
+    }
+
+    .toggle-btn:hover { border-color: #666; color: #ccc; }
+    .toggle-btn.active { border-color: #fff; color: #fff; }
   </style>
 </head>
 <body>
 <canvas id="c"></canvas>
 <div id="hint">click to place a vertex</div>
+<div id="controls">
+  <div class="ctrl-row">
+    <label class="ctrl-label">Jump ratio</label>
+    <input type="range" id="ratio-slider" min="30" max="90" value="50" step="1">
+    <span class="ctrl-val" id="ratio-val">0.50</span>
+  </div>
+  <div class="ctrl-row">
+    <label class="ctrl-label">Speed</label>
+    <input type="range" id="speed-slider" min="100" max="5000" value="1000" step="100">
+    <span class="ctrl-val" id="speed-val">1000</span>
+  </div>
+  <div class="ctrl-row">
+    <label class="ctrl-label">Color</label>
+    <div class="ctrl-toggle" id="color-toggle">
+      <button class="toggle-btn active" data-mode="vertex">By vertex</button>
+      <button class="toggle-btn" data-mode="single">Single</button>
+      <button class="toggle-btn" data-mode="age">Age</button>
+    </div>
+  </div>
+  <div class="ctrl-row">
+    <label class="ctrl-label">Preset</label>
+    <div class="ctrl-toggle" id="preset-btns">
+      <button class="toggle-btn" data-preset="triangle">Triangle</button>
+      <button class="toggle-btn" data-preset="square">Square</button>
+      <button class="toggle-btn" data-preset="pentagon">Pentagon</button>
+      <button class="toggle-btn" data-preset="hexagon">Hexagon</button>
+    </div>
+  </div>
+</div>
+<div id="ctrl-trigger"></div>
 <script>
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
@@ -249,6 +364,40 @@
   }
 
   requestAnimationFrame(frame);
+
+  // Controls panel open/close
+  const controls = document.getElementById('controls');
+  const ctrlTrigger = document.getElementById('ctrl-trigger');
+
+  ctrlTrigger.addEventListener('mouseenter', () => controls.classList.add('open'));
+  controls.addEventListener('mouseleave', () => controls.classList.remove('open'));
+
+  // Jump ratio slider
+  const ratioSlider = document.getElementById('ratio-slider');
+  const ratioVal = document.getElementById('ratio-val');
+  ratioSlider.addEventListener('input', () => {
+    jumpRatio = ratioSlider.value / 100;
+    ratioVal.textContent = jumpRatio.toFixed(2);
+    clearDots();
+    startEngine();
+  });
+
+  // Speed slider
+  const speedSlider = document.getElementById('speed-slider');
+  const speedVal = document.getElementById('speed-val');
+  speedSlider.addEventListener('input', () => {
+    speed = parseInt(speedSlider.value);
+    speedVal.textContent = speed;
+  });
+
+  // Color mode toggle
+  document.getElementById('color-toggle').addEventListener('click', e => {
+    const btn = e.target.closest('.toggle-btn');
+    if (!btn) return;
+    colorMode = btn.dataset.mode;
+    document.querySelectorAll('#color-toggle .toggle-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
 </script>
 </body>
 </html>
