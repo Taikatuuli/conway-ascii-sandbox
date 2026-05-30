@@ -57,7 +57,8 @@
 
   function frame() {
     requestAnimationFrame(frame);
-    // (dot render will go here in Task 4)
+    runSteps(speed);
+    // dot render goes in Task 4
     renderVertices();
   }
 
@@ -96,10 +97,56 @@
     vertices.push({ x: e.clientX, y: e.clientY, hue });
 
     if (vertices.length === 1) hint.classList.add('hidden');
+    if (vertices.length === 2) startEngine();
   });
 
   function dist(a, b) {
     return Math.hypot(a.x - b.x, a.y - b.y);
+  }
+
+  // --- Engine state ---
+  const MAX_DOTS = 5_000_000;
+  const dots = new Float32Array(MAX_DOTS * 3); // [x, y, colorIdx, x, y, colorIdx, ...]
+  let dotCount = 0;   // total dots ever written (capped at MAX_DOTS)
+  let writePtr = 0;   // next write index (0..MAX_DOTS-1)
+
+  let seed = { x: 0, y: 0 };
+  let running = false;
+
+  // Settings (will be driven by controls in Task 6)
+  let jumpRatio = 0.5;
+  let speed = 1000; // steps per frame
+
+  // --- Engine functions ---
+  function startEngine() {
+    if (vertices.length < 2) return;
+    // Seed from center of vertex cloud
+    seed.x = vertices.reduce((s, v) => s + v.x, 0) / vertices.length;
+    seed.y = vertices.reduce((s, v) => s + v.y, 0) / vertices.length;
+    running = true;
+  }
+
+  function clearDots() {
+    dotCount = 0;
+    writePtr = 0;
+  }
+
+  function runSteps(n) {
+    if (!running || vertices.length < 2) return;
+    for (let i = 0; i < n; i++) {
+      const vIdx = Math.floor(Math.random() * vertices.length);
+      const v = vertices[vIdx];
+      seed.x += jumpRatio * (v.x - seed.x);
+      seed.y += jumpRatio * (v.y - seed.y);
+
+      const ptr = writePtr * 3;
+      dots[ptr]     = seed.x;
+      dots[ptr + 1] = seed.y;
+      dots[ptr + 2] = vIdx;
+
+      writePtr = (writePtr + 1) % MAX_DOTS;
+      if (dotCount < MAX_DOTS) dotCount++;
+    }
   }
 
   requestAnimationFrame(frame);
