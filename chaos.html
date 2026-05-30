@@ -122,6 +122,10 @@
 
     // Clear buffer to black
     imageData.data.fill(0);
+    // Set all pixels to opaque black
+    for (let i = 3; i < imageData.data.length; i += 4) {
+      imageData.data[i] = 255;
+    }
     const buf = imageData.data;
 
     for (let i = 0; i < dotCount; i++) {
