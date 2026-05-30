@@ -154,8 +154,8 @@
   </div>
   <div class="ctrl-row">
     <label class="ctrl-label">Speed</label>
-    <input type="range" id="speed-slider" min="100" max="5000" value="1000" step="100">
-    <span class="ctrl-val" id="speed-val">1000</span>
+    <input type="range" id="speed-slider" min="100" max="5000" value="300" step="100">
+    <span class="ctrl-val" id="speed-val">300</span>
   </div>
   <div class="ctrl-row">
     <label class="ctrl-label">Color</label>
@@ -183,6 +183,8 @@
   let imageData = null;
   let dotCount = 0;
   let writePtr = 0;
+  let renderedPtr = 0;
+  const DECAY = 0.95; // phosphor decay per frame
 
   function resize() {
     W = canvas.width = window.innerWidth;
@@ -306,51 +308,62 @@
 
   function renderDots() {
     if (!imageData) return;
-
-    // Clear buffer to black
-    imageData.data.fill(0);
-    // Set all pixels to opaque black
-    for (let i = 3; i < imageData.data.length; i += 4) {
-      imageData.data[i] = 255;
-    }
     const buf = imageData.data;
+    const len = buf.length;
 
-    for (let i = 0; i < dotCount; i++) {
+    // Phosphor decay — fade all pixels toward black each frame
+    for (let i = 0; i < len; i += 4) {
+      buf[i]   = buf[i]   * DECAY | 0;
+      buf[i+1] = buf[i+1] * DECAY | 0;
+      buf[i+2] = buf[i+2] * DECAY | 0;
+      // buf[i+3] stays 255
+    }
+
+    // Plot only dots added since last render (not all dots from scratch)
+    const newCount = (writePtr - renderedPtr + MAX_DOTS) % MAX_DOTS;
+    for (let step = 0; step < newCount; step++) {
+      const i = (renderedPtr + step) % MAX_DOTS;
       const ptr = i * 3;
       const px = dots[ptr]     | 0;
       const py = dots[ptr + 1] | 0;
-      if (px < 0 || px >= W || py < 0 || py >= H) continue;
+      if (px < 1 || px >= W - 1 || py < 1 || py >= H - 1) continue;
 
-      const pixel = (py * W + px) * 4;
       const [r, g, b] = dotColor(i, dots[ptr + 2] | 0);
-      // Additive blend: brighten existing pixel
-      buf[pixel]     = Math.min(255, buf[pixel]     + r);
-      buf[pixel + 1] = Math.min(255, buf[pixel + 1] + g);
-      buf[pixel + 2] = Math.min(255, buf[pixel + 2] + b);
-      buf[pixel + 3] = 255;
+      // Center pixel: full brightness
+      addPixel(buf, px,     py,     r, g, b, 255);
+      // Cardinal neighbors: soft glow
+      addPixel(buf, px - 1, py,     r, g, b, 60);
+      addPixel(buf, px + 1, py,     r, g, b, 60);
+      addPixel(buf, px,     py - 1, r, g, b, 60);
+      addPixel(buf, px,     py + 1, r, g, b, 60);
     }
+    renderedPtr = writePtr;
 
     ctx.putImageData(imageData, 0, 0);
+  }
+
+  function addPixel(buf, px, py, r, g, b, amount) {
+    const pixel = (py * W + px) * 4;
+    buf[pixel]   = Math.min(255, buf[pixel]   + (r * amount >> 8));
+    buf[pixel+1] = Math.min(255, buf[pixel+1] + (g * amount >> 8));
+    buf[pixel+2] = Math.min(255, buf[pixel+2] + (b * amount >> 8));
   }
 
   // colorMode: 'vertex' | 'single' | 'age'
   let colorMode = 'vertex';
 
   function dotColor(dotIndex, vIdx) {
-    if (colorMode === 'single') return [220, 220, 220];
+    // Phosphor rendering: dots start bright and decay — use high lightness
+    if (colorMode === 'single') return [255, 255, 255];
 
     if (colorMode === 'age') {
-      // Newer dots (near writePtr) are bright, older are dim
-      const age = (dotIndex < writePtr)
-        ? writePtr - dotIndex
-        : MAX_DOTS - dotIndex + writePtr;
-      const brightness = Math.max(20, 220 - (age / MAX_DOTS) * 200);
-      return [brightness, brightness, brightness];
+      // Decay already shows age visually — render white and let the buffer do the rest
+      return [255, 255, 255];
     }
 
-    // 'vertex' mode — hue from the vertex that was chosen
+    // 'vertex' mode — bright saturated hue per vertex
     const hue = vertices[vIdx] ? vertices[vIdx].hue : 0;
-    return hslToRgb(hue, 75, 65);
+    return hslToRgb(hue, 90, 78);
   }
 
   function hslToRgb(h, s, l) {
@@ -418,7 +431,7 @@
 
   // Settings (will be driven by controls in Task 6)
   let jumpRatio = 0.5;
-  let speed = 1000; // steps per frame
+  let speed = 300; // steps per frame — slower emergence
 
   // --- Engine functions ---
   function startEngine() {
@@ -432,6 +445,11 @@
   function clearDots() {
     dotCount = 0;
     writePtr = 0;
+    renderedPtr = 0;
+    if (imageData) {
+      imageData.data.fill(0);
+      for (let i = 3; i < imageData.data.length; i += 4) imageData.data[i] = 255;
+    }
   }
 
   function runSteps(n) {
