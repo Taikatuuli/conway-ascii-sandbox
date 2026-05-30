@@ -35,7 +35,7 @@
       position: fixed;
       bottom: 0; left: 0; right: 0;
       height: 24px;
-      z-index: 4;
+      z-index: 3;
     }
 
     #controls {
@@ -50,7 +50,7 @@
       align-items: center;
       transform: translateY(100%);
       transition: transform 300ms ease-out;
-      z-index: 3;
+      z-index: 4;
     }
 
     #controls.open { transform: translateY(0); }
@@ -181,6 +181,8 @@
   const ctx = canvas.getContext('2d');
   let W, H;
   let imageData = null;
+  let dotCount = 0;
+  let writePtr = 0;
 
   function resize() {
     W = canvas.width = window.innerWidth;
@@ -260,9 +262,9 @@
   });
 
   let lastMX = 0, lastMY = 0;
-  canvas.addEventListener('mousemove', e => { lastMX = e.clientX; lastMY = e.clientY; });
-
   canvas.addEventListener('mousemove', e => {
+    lastMX = e.clientX;
+    lastMY = e.clientY;
     if (!dragVertex) return;
     wasDragging = true;
     dragVertex.x = e.clientX;
@@ -274,6 +276,7 @@
   window.addEventListener('mouseup', e => {
     if (e.button !== 0) return;
     dragVertex = null;
+    wasDragging = false;
     canvas.style.cursor = 'crosshair';
   });
 
@@ -295,8 +298,7 @@
   // --- Engine state ---
   const MAX_DOTS = 5_000_000;
   const dots = new Float32Array(MAX_DOTS * 3); // [x, y, colorIdx, x, y, colorIdx, ...]
-  let dotCount = 0;   // total dots ever written (capped at MAX_DOTS)
-  let writePtr = 0;   // next write index (0..MAX_DOTS-1)
+  // dotCount and writePtr declared near top (before resize() call) to avoid TDZ crash
 
   function initImageData() {
     imageData = ctx.createImageData(W, H);
@@ -384,7 +386,7 @@
     }
 
     jumpRatio = p.ratio;
-    ratioSlider.value = Math.round(p.ratio * 100);
+    ratioSlider.value = p.ratio * 100;
     ratioVal.textContent = p.ratio.toFixed(2);
 
     clearDots();
