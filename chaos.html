@@ -198,13 +198,14 @@
   let vertices = []; // [{x, y, hue}]
 
   const hint = document.getElementById('hint');
+  const dotCountEl = document.getElementById('dot-count');
 
   function frame() {
     requestAnimationFrame(frame);
     runSteps(speed);
     renderDots();
     renderVertices(); // drawn on top of dots
-    document.getElementById('dot-count').textContent = dotCount > 0
+    dotCountEl.textContent = dotCount > 0
       ? `${(dotCount / 1_000_000).toFixed(2)}M pts`
       : '';
     if (!dragVertex) {
@@ -384,7 +385,7 @@
 
     jumpRatio = p.ratio;
     ratioSlider.value = Math.round(p.ratio * 100);
-    ratioVal.textContent = p.ratio.toFixed(3);
+    ratioVal.textContent = p.ratio.toFixed(2);
 
     clearDots();
     hint.classList.add('hidden');
