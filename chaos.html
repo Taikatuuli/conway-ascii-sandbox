@@ -436,9 +436,9 @@
   // --- Engine functions ---
   function startEngine() {
     if (vertices.length < 2) return;
-    // Seed from center of vertex cloud
-    seed.x = vertices.reduce((s, v) => s + v.x, 0) / vertices.length;
-    seed.y = vertices.reduce((s, v) => s + v.y, 0) / vertices.length;
+    // Always seed from canvas center — dots bloom outward from middle
+    seed.x = W / 2;
+    seed.y = H / 2;
     running = true;
   }
 
