@@ -91,6 +91,7 @@
 
   canvas.addEventListener('click', e => {
     if (e.button !== 0) return;
+    if (wasDragging) { wasDragging = false; return; }
     // Don't place if clicking near existing vertex
     const near = vertices.find(v => dist(v, e) < VERTEX_RADIUS * 2);
     if (near) return;
@@ -101,6 +102,38 @@
 
     if (vertices.length === 1) hint.classList.add('hidden');
     if (vertices.length === 2) startEngine();
+  });
+
+  canvas.addEventListener('mousedown', e => {
+    if (e.button !== 0) return;
+    dragVertex = vertices.find(v => dist(v, e) < VERTEX_RADIUS * 2) || null;
+    if (dragVertex) { canvas.style.cursor = 'grabbing'; wasDragging = false; }
+  });
+
+  canvas.addEventListener('mousemove', e => {
+    if (!dragVertex) return;
+    wasDragging = true;
+    dragVertex.x = e.clientX;
+    dragVertex.y = e.clientY;
+    clearDots();
+    startEngine();
+  });
+
+  window.addEventListener('mouseup', e => {
+    if (e.button !== 0) return;
+    dragVertex = null;
+    canvas.style.cursor = 'crosshair';
+  });
+
+  canvas.addEventListener('contextmenu', e => {
+    e.preventDefault();
+    const v = vertices.find(v => dist(v, e) < VERTEX_RADIUS * 2);
+    if (!v) return;
+    vertices.splice(vertices.indexOf(v), 1);
+    clearDots();
+    if (vertices.length >= 2) startEngine();
+    else { running = false; }
+    if (vertices.length === 0) hint.classList.remove('hidden');
   });
 
   function dist(a, b) {
@@ -176,6 +209,8 @@
 
   let seed = { x: 0, y: 0 };
   let running = false;
+  let dragVertex = null;
+  let wasDragging = false;
 
   // Settings (will be driven by controls in Task 6)
   let jumpRatio = 0.5;
