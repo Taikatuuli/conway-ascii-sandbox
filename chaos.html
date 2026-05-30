@@ -168,9 +168,9 @@
   <div class="ctrl-row">
     <label class="ctrl-label">Glyph</label>
     <div class="ctrl-toggle" id="char-toggle">
-      <button class="toggle-btn active" data-char="+">+</button>
+      <button class="toggle-btn" data-char="+">+</button>
       <button class="toggle-btn" data-char="·">·</button>
-      <button class="toggle-btn" data-char="×">×</button>
+      <button class="toggle-btn active" data-char="×">×</button>
       <button class="toggle-btn" data-char="*">*</button>
       <button class="toggle-btn" data-char="○">○</button>
     </div>
@@ -200,7 +200,7 @@
   let GCOLS, GROWS;
   let gridR, gridG, gridB; // heat per cell, per channel
   let imageData = null;
-  let asciiChar = '+';
+  let asciiChar = '×';
 
   const BITMAPS = {
     '+': [0,0,1,0,0, 0,0,1,0,0, 1,1,1,1,1, 0,0,1,0,0, 0,0,1,0,0],
