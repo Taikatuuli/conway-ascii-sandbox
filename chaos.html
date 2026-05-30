@@ -195,11 +195,20 @@
   let renderedPtr = 0;
   const DECAY = 0.95; // phosphor decay per frame
 
-  // ASCII grid renderer
-  const CELL = 10; // px per cell
+  // ASCII grid renderer — pixel-stamped bitmaps, no font antialiasing
+  const CELL = 5; // px per character cell
   let GCOLS, GROWS;
   let gridR, gridG, gridB; // heat per cell, per channel
+  let imageData = null;
   let asciiChar = '+';
+
+  const BITMAPS = {
+    '+': [0,0,1,0,0, 0,0,1,0,0, 1,1,1,1,1, 0,0,1,0,0, 0,0,1,0,0],
+    '·': [0,0,0,0,0, 0,1,1,0,0, 0,1,1,0,0, 0,0,0,0,0, 0,0,0,0,0],
+    '×': [1,0,0,0,1, 0,1,0,1,0, 0,0,1,0,0, 0,1,0,1,0, 1,0,0,0,1],
+    '*': [0,1,0,1,0, 0,0,1,0,0, 1,1,0,1,1, 0,0,1,0,0, 0,1,0,1,0],
+    '○': [0,1,1,1,0, 1,0,0,0,1, 1,0,0,0,1, 1,0,0,0,1, 0,1,1,1,0],
+  };
 
   function initGrid() {
     GCOLS = Math.ceil(W / CELL);
@@ -208,6 +217,9 @@
     gridR = new Float32Array(n);
     gridG = new Float32Array(n);
     gridB = new Float32Array(n);
+    imageData = ctx.createImageData(W, H);
+    // init alpha channel
+    for (let i = 3; i < imageData.data.length; i += 4) imageData.data[i] = 255;
   }
 
   function resize() {
@@ -327,7 +339,9 @@
   // dotCount and writePtr declared near top (before resize() call) to avoid TDZ crash
 
   function renderDots() {
-    // Decay all cells toward black
+    if (!imageData) return;
+
+    // Decay all cells
     for (let i = 0; i < gridR.length; i++) {
       gridR[i] *= DECAY;
       gridG[i] *= DECAY;
@@ -344,18 +358,18 @@
       if (gc < 0 || gc >= GCOLS || gr < 0 || gr >= GROWS) continue;
       const [r, g, b] = dotColor(i, dots[ptr + 2] | 0);
       const gi = gr * GCOLS + gc;
-      gridR[gi] = Math.min(255, gridR[gi] + r * 0.4);
-      gridG[gi] = Math.min(255, gridG[gi] + g * 0.4);
-      gridB[gi] = Math.min(255, gridB[gi] + b * 0.4);
+      gridR[gi] = Math.min(255, gridR[gi] + r * 0.5);
+      gridG[gi] = Math.min(255, gridG[gi] + g * 0.5);
+      gridB[gi] = Math.min(255, gridB[gi] + b * 0.5);
     }
     renderedPtr = writePtr;
 
-    // Draw ASCII grid
-    ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, W, H);
-    ctx.font = `${CELL}px 'Courier New', monospace`;
-    ctx.textBaseline = 'top';
+    // Stamp character bitmaps into ImageData — pixel-perfect, zero antialiasing
+    const buf = imageData.data;
+    buf.fill(0);
+    for (let i = 3; i < buf.length; i += 4) buf[i] = 255;
 
+    const bitmap = BITMAPS[asciiChar] || BITMAPS['+'];
     for (let gr = 0; gr < GROWS; gr++) {
       for (let gc = 0; gc < GCOLS; gc++) {
         const gi = gr * GCOLS + gc;
@@ -363,10 +377,21 @@
         const g = gridG[gi] | 0;
         const b = gridB[gi] | 0;
         if (r < 4 && g < 4 && b < 4) continue;
-        ctx.fillStyle = `rgb(${r},${g},${b})`;
-        ctx.fillText(asciiChar, gc * CELL, gr * CELL);
+        // Stamp 5×5 bitmap at pixel position (gc*CELL, gr*CELL)
+        const ox = gc * CELL, oy = gr * CELL;
+        for (let py = 0; py < CELL; py++) {
+          for (let px = 0; px < CELL; px++) {
+            if (!bitmap[py * CELL + px]) continue;
+            const p = ((oy + py) * W + (ox + px)) * 4;
+            buf[p]   = r;
+            buf[p+1] = g;
+            buf[p+2] = b;
+          }
+        }
       }
     }
+
+    ctx.putImageData(imageData, 0, 0);
   }
 
   // colorMode: 'vertex' | 'single' | 'age'
@@ -467,6 +492,7 @@
     writePtr = 0;
     renderedPtr = 0;
     if (gridR) { gridR.fill(0); gridG.fill(0); gridB.fill(0); }
+    if (imageData) { imageData.data.fill(0); for (let i = 3; i < imageData.data.length; i += 4) imageData.data[i] = 255; }
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, W, H);
   }
