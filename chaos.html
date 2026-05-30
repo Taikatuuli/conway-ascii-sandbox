@@ -17,10 +17,24 @@
       display: block;
       cursor: crosshair;
     }
+
+    #hint {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: rgba(255,255,255,0.25);
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      pointer-events: none;
+      transition: opacity 600ms;
+    }
+    #hint.hidden { opacity: 0; }
   </style>
 </head>
 <body>
 <canvas id="c"></canvas>
+<div id="hint">click to place a vertex</div>
 <script>
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
@@ -34,9 +48,60 @@
   window.addEventListener('resize', resize);
   resize();
 
+  const MAX_VERTICES = 8;
+  const VERTEX_RADIUS = 8; // px hit radius
+  const HUES = [0, 210, 120, 40, 280, 170, 330, 60]; // one per vertex slot
+  let vertices = []; // [{x, y, hue}]
+
+  const hint = document.getElementById('hint');
+
   function frame() {
     requestAnimationFrame(frame);
+    // (dot render will go here in Task 4)
+    renderVertices();
   }
+
+  function renderVertices() {
+    vertices.forEach((v, i) => {
+      // Glow
+      const grad = ctx.createRadialGradient(v.x, v.y, 0, v.x, v.y, 16);
+      grad.addColorStop(0, `hsla(${v.hue},80%,70%,0.5)`);
+      grad.addColorStop(1, 'transparent');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(v.x, v.y, 16, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Dot
+      ctx.fillStyle = `hsl(${v.hue},80%,70%)`;
+      ctx.beginPath();
+      ctx.arc(v.x, v.y, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Label
+      ctx.fillStyle = `hsla(${v.hue},60%,70%,0.7)`;
+      ctx.font = '11px monospace';
+      ctx.fillText(`V${i + 1}`, v.x + 10, v.y - 8);
+    });
+  }
+
+  canvas.addEventListener('click', e => {
+    if (e.button !== 0) return;
+    // Don't place if clicking near existing vertex
+    const near = vertices.find(v => dist(v, e) < VERTEX_RADIUS * 2);
+    if (near) return;
+    if (vertices.length >= MAX_VERTICES) return;
+
+    const hue = HUES[vertices.length];
+    vertices.push({ x: e.clientX, y: e.clientY, hue });
+
+    if (vertices.length === 1) hint.classList.add('hidden');
+  });
+
+  function dist(a, b) {
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  }
+
   requestAnimationFrame(frame);
 </script>
 </body>
