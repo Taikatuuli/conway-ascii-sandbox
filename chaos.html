@@ -149,12 +149,12 @@
 <div id="controls">
   <div class="ctrl-row">
     <label class="ctrl-label">Jump ratio</label>
-    <input type="range" id="ratio-slider" min="30" max="90" value="50" step="1">
+    <input type="range" id="ratio-slider" min="3" max="90" value="50" step="1">
     <span class="ctrl-val" id="ratio-val">0.50</span>
   </div>
   <div class="ctrl-row">
     <label class="ctrl-label">Speed</label>
-    <input type="range" id="speed-slider" min="100" max="5000" value="300" step="100">
+    <input type="range" id="speed-slider" min="100" max="20000" value="300" step="100">
     <span class="ctrl-val" id="speed-val">300</span>
   </div>
   <div class="ctrl-row">
@@ -484,7 +484,7 @@
   const ratioVal = document.getElementById('ratio-val');
   ratioSlider.addEventListener('input', () => {
     jumpRatio = ratioSlider.value / 100;
-    ratioVal.textContent = jumpRatio.toFixed(2);
+    ratioVal.textContent = jumpRatio < 0.1 ? jumpRatio.toFixed(3) : jumpRatio.toFixed(2);
     clearDots();
     startEngine();
   });
