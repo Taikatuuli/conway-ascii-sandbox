@@ -355,6 +355,23 @@
     startEngine();
   }
 
+  window.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT') return; // don't capture when slider focused
+
+    if (e.code === 'Space') {
+      e.preventDefault();
+      clearDots();
+      startEngine();
+    }
+
+    if (e.code === 'KeyR') {
+      vertices = [];
+      clearDots();
+      running = false;
+      hint.classList.remove('hidden');
+    }
+  });
+
   let seed = { x: 0, y: 0 };
   let running = false;
   let dragVertex = null;
