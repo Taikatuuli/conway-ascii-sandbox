@@ -115,11 +115,37 @@
 
     .toggle-btn:hover { border-color: #666; color: #ccc; }
     .toggle-btn.active { border-color: #fff; color: #fff; }
+
+    #title {
+      position: fixed;
+      top: 18px;
+      left: 24px;
+      color: rgba(255,255,255,0.18);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    #dot-count {
+      position: fixed;
+      bottom: 28px;
+      right: 24px;
+      color: rgba(255,255,255,0.18);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      font-variant-numeric: tabular-nums;
+      pointer-events: none;
+      user-select: none;
+    }
   </style>
 </head>
 <body>
 <canvas id="c"></canvas>
 <div id="hint">click to place a vertex</div>
+<div id="title">chaos game</div>
+<div id="dot-count"></div>
 <div id="controls">
   <div class="ctrl-row">
     <label class="ctrl-label">Jump ratio</label>
@@ -178,6 +204,13 @@
     runSteps(speed);
     renderDots();
     renderVertices(); // drawn on top of dots
+    document.getElementById('dot-count').textContent = dotCount > 0
+      ? `${(dotCount / 1_000_000).toFixed(2)}M pts`
+      : '';
+    if (!dragVertex) {
+      const nearAny = vertices.some(v => dist(v, { x: lastMX, y: lastMY }) < VERTEX_RADIUS * 2);
+      canvas.style.cursor = nearAny ? 'grab' : 'crosshair';
+    }
   }
 
   function renderVertices() {
@@ -224,6 +257,9 @@
     dragVertex = vertices.find(v => dist(v, e) < VERTEX_RADIUS * 2) || null;
     if (dragVertex) { canvas.style.cursor = 'grabbing'; wasDragging = false; }
   });
+
+  let lastMX = 0, lastMY = 0;
+  canvas.addEventListener('mousemove', e => { lastMX = e.clientX; lastMY = e.clientY; });
 
   canvas.addEventListener('mousemove', e => {
     if (!dragVertex) return;
