@@ -39,10 +39,13 @@
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
   let W, H;
+  let imageData = null;
 
   function resize() {
     W = canvas.width = window.innerWidth;
     H = canvas.height = window.innerHeight;
+    initImageData();
+    clearDots();
   }
 
   window.addEventListener('resize', resize);
@@ -58,8 +61,8 @@
   function frame() {
     requestAnimationFrame(frame);
     runSteps(speed);
-    // dot render goes in Task 4
-    renderVertices();
+    renderDots();
+    renderVertices(); // drawn on top of dots
   }
 
   function renderVertices() {
@@ -109,6 +112,63 @@
   const dots = new Float32Array(MAX_DOTS * 3); // [x, y, colorIdx, x, y, colorIdx, ...]
   let dotCount = 0;   // total dots ever written (capped at MAX_DOTS)
   let writePtr = 0;   // next write index (0..MAX_DOTS-1)
+
+  function initImageData() {
+    imageData = ctx.createImageData(W, H);
+  }
+
+  function renderDots() {
+    if (!imageData) return;
+
+    // Clear buffer to black
+    imageData.data.fill(0);
+    const buf = imageData.data;
+
+    for (let i = 0; i < dotCount; i++) {
+      const ptr = i * 3;
+      const px = dots[ptr]     | 0;
+      const py = dots[ptr + 1] | 0;
+      if (px < 0 || px >= W || py < 0 || py >= H) continue;
+
+      const pixel = (py * W + px) * 4;
+      const [r, g, b] = dotColor(i, dots[ptr + 2] | 0);
+      // Additive blend: brighten existing pixel
+      buf[pixel]     = Math.min(255, buf[pixel]     + r);
+      buf[pixel + 1] = Math.min(255, buf[pixel + 1] + g);
+      buf[pixel + 2] = Math.min(255, buf[pixel + 2] + b);
+      buf[pixel + 3] = 255;
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+  }
+
+  // colorMode: 'vertex' | 'single' | 'age'
+  let colorMode = 'vertex';
+
+  function dotColor(dotIndex, vIdx) {
+    if (colorMode === 'single') return [220, 220, 220];
+
+    if (colorMode === 'age') {
+      // Newer dots (near writePtr) are bright, older are dim
+      const age = (dotIndex < writePtr)
+        ? writePtr - dotIndex
+        : MAX_DOTS - dotIndex + writePtr;
+      const brightness = Math.max(20, 220 - (age / MAX_DOTS) * 200);
+      return [brightness, brightness, brightness];
+    }
+
+    // 'vertex' mode — hue from the vertex that was chosen
+    const hue = vertices[vIdx] ? vertices[vIdx].hue : 0;
+    return hslToRgb(hue, 75, 65);
+  }
+
+  function hslToRgb(h, s, l) {
+    s /= 100; l /= 100;
+    const k = n => (n + h / 30) % 12;
+    const a = s * Math.min(l, 1 - l);
+    const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+    return [Math.round(f(0) * 255), Math.round(f(8) * 255), Math.round(f(4) * 255)];
+  }
 
   let seed = { x: 0, y: 0 };
   let running = false;
