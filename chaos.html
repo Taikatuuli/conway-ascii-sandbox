@@ -166,6 +166,16 @@
     </div>
   </div>
   <div class="ctrl-row">
+    <label class="ctrl-label">Glyph</label>
+    <div class="ctrl-toggle" id="char-toggle">
+      <button class="toggle-btn active" data-char="+">+</button>
+      <button class="toggle-btn" data-char="·">·</button>
+      <button class="toggle-btn" data-char="×">×</button>
+      <button class="toggle-btn" data-char="*">*</button>
+      <button class="toggle-btn" data-char="○">○</button>
+    </div>
+  </div>
+  <div class="ctrl-row">
     <label class="ctrl-label">Preset</label>
     <div class="ctrl-toggle" id="preset-btns">
       <button class="toggle-btn" data-preset="triangle">Triangle</button>
@@ -180,16 +190,30 @@
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
   let W, H;
-  let imageData = null;
   let dotCount = 0;
   let writePtr = 0;
   let renderedPtr = 0;
   const DECAY = 0.95; // phosphor decay per frame
 
+  // ASCII grid renderer
+  const CELL = 10; // px per cell
+  let GCOLS, GROWS;
+  let gridR, gridG, gridB; // heat per cell, per channel
+  let asciiChar = '+';
+
+  function initGrid() {
+    GCOLS = Math.ceil(W / CELL);
+    GROWS = Math.ceil(H / CELL);
+    const n = GCOLS * GROWS;
+    gridR = new Float32Array(n);
+    gridG = new Float32Array(n);
+    gridB = new Float32Array(n);
+  }
+
   function resize() {
     W = canvas.width = window.innerWidth;
     H = canvas.height = window.innerHeight;
-    initImageData();
+    initGrid();
     clearDots();
   }
 
@@ -302,51 +326,47 @@
   const dots = new Float32Array(MAX_DOTS * 3); // [x, y, colorIdx, x, y, colorIdx, ...]
   // dotCount and writePtr declared near top (before resize() call) to avoid TDZ crash
 
-  function initImageData() {
-    imageData = ctx.createImageData(W, H);
-  }
-
   function renderDots() {
-    if (!imageData) return;
-    const buf = imageData.data;
-    const len = buf.length;
-
-    // Phosphor decay — fade all pixels toward black each frame
-    for (let i = 0; i < len; i += 4) {
-      buf[i]   = buf[i]   * DECAY | 0;
-      buf[i+1] = buf[i+1] * DECAY | 0;
-      buf[i+2] = buf[i+2] * DECAY | 0;
-      // buf[i+3] stays 255
+    // Decay all cells toward black
+    for (let i = 0; i < gridR.length; i++) {
+      gridR[i] *= DECAY;
+      gridG[i] *= DECAY;
+      gridB[i] *= DECAY;
     }
 
-    // Plot only dots added since last render (not all dots from scratch)
+    // Accumulate new dots into grid cells
     const newCount = (writePtr - renderedPtr + MAX_DOTS) % MAX_DOTS;
     for (let step = 0; step < newCount; step++) {
       const i = (renderedPtr + step) % MAX_DOTS;
       const ptr = i * 3;
-      const px = dots[ptr]     | 0;
-      const py = dots[ptr + 1] | 0;
-      if (px < 1 || px >= W - 1 || py < 1 || py >= H - 1) continue;
-
+      const gc = (dots[ptr]     / CELL) | 0;
+      const gr = (dots[ptr + 1] / CELL) | 0;
+      if (gc < 0 || gc >= GCOLS || gr < 0 || gr >= GROWS) continue;
       const [r, g, b] = dotColor(i, dots[ptr + 2] | 0);
-      // Center pixel: full brightness
-      addPixel(buf, px,     py,     r, g, b, 255);
-      // Cardinal neighbors: soft glow
-      addPixel(buf, px - 1, py,     r, g, b, 60);
-      addPixel(buf, px + 1, py,     r, g, b, 60);
-      addPixel(buf, px,     py - 1, r, g, b, 60);
-      addPixel(buf, px,     py + 1, r, g, b, 60);
+      const gi = gr * GCOLS + gc;
+      gridR[gi] = Math.min(255, gridR[gi] + r * 0.4);
+      gridG[gi] = Math.min(255, gridG[gi] + g * 0.4);
+      gridB[gi] = Math.min(255, gridB[gi] + b * 0.4);
     }
     renderedPtr = writePtr;
 
-    ctx.putImageData(imageData, 0, 0);
-  }
+    // Draw ASCII grid
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, W, H);
+    ctx.font = `${CELL}px 'Courier New', monospace`;
+    ctx.textBaseline = 'top';
 
-  function addPixel(buf, px, py, r, g, b, amount) {
-    const pixel = (py * W + px) * 4;
-    buf[pixel]   = Math.min(255, buf[pixel]   + (r * amount >> 8));
-    buf[pixel+1] = Math.min(255, buf[pixel+1] + (g * amount >> 8));
-    buf[pixel+2] = Math.min(255, buf[pixel+2] + (b * amount >> 8));
+    for (let gr = 0; gr < GROWS; gr++) {
+      for (let gc = 0; gc < GCOLS; gc++) {
+        const gi = gr * GCOLS + gc;
+        const r = gridR[gi] | 0;
+        const g = gridG[gi] | 0;
+        const b = gridB[gi] | 0;
+        if (r < 4 && g < 4 && b < 4) continue;
+        ctx.fillStyle = `rgb(${r},${g},${b})`;
+        ctx.fillText(asciiChar, gc * CELL, gr * CELL);
+      }
+    }
   }
 
   // colorMode: 'vertex' | 'single' | 'age'
@@ -446,10 +466,9 @@
     dotCount = 0;
     writePtr = 0;
     renderedPtr = 0;
-    if (imageData) {
-      imageData.data.fill(0);
-      for (let i = 3; i < imageData.data.length; i += 4) imageData.data[i] = 255;
-    }
+    if (gridR) { gridR.fill(0); gridG.fill(0); gridB.fill(0); }
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, W, H);
   }
 
   function runSteps(n) {
@@ -503,6 +522,14 @@
     if (!btn) return;
     colorMode = btn.dataset.mode;
     document.querySelectorAll('#color-toggle .toggle-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+
+  document.getElementById('char-toggle').addEventListener('click', e => {
+    const btn = e.target.closest('.toggle-btn');
+    if (!btn) return;
+    asciiChar = btn.dataset.char;
+    document.querySelectorAll('#char-toggle .toggle-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
   });
 
