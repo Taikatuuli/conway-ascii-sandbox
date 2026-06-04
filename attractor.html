@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Strange Attractor</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #000;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    #c { display: block; }
+
+    #title {
+      position: fixed;
+      top: 18px; left: 24px;
+      color: rgba(255,255,255,0.18);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    #pt-count {
+      position: fixed;
+      bottom: 28px; right: 24px;
+      color: rgba(255,255,255,0.18);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      font-variant-numeric: tabular-nums;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    #ctrl-trigger {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 24px;
+      z-index: 3;
+    }
+
+    #controls {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: rgba(0,0,0,0.92);
+      border-top: 1px solid #222;
+      padding: 14px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 32px;
+      align-items: center;
+      transform: translateY(100%);
+      transition: transform 300ms ease-out;
+      z-index: 4;
+    }
+    #controls.open { transform: translateY(0); }
+
+    .ctrl-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .ctrl-label {
+      color: #666;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      min-width: 72px;
+    }
+    .ctrl-val {
+      color: #999;
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+      min-width: 40px;
+    }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 120px; height: 2px;
+      background: #333;
+      outline: none;
+      border-radius: 1px;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    input[type=color] {
+      -webkit-appearance: none;
+      width: 24px; height: 24px;
+      border: 1px solid #333;
+      border-radius: 3px;
+      background: none;
+      cursor: pointer;
+      padding: 0;
+    }
+    input[type=color]::-webkit-color-swatch-wrapper { padding: 2px; }
+    input[type=color]::-webkit-color-swatch { border: none; border-radius: 2px; }
+
+    .toggle-btn {
+      background: none;
+      border: 1px solid #333;
+      color: #666;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      padding: 3px 8px;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all 150ms;
+      font-family: inherit;
+    }
+    .toggle-btn:hover { border-color: #666; color: #ccc; }
+    .toggle-btn.active { border-color: #fff; color: #fff; }
+
+    #export-btn {
+      background: none;
+      border: 1px solid #444;
+      color: #aaa;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      cursor: pointer;
+      border-radius: 2px;
+      font-family: inherit;
+      transition: all 150ms;
+      margin-left: 8px;
+    }
+    #export-btn:hover { border-color: #fff; color: #fff; }
+  </style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+<div id="title">thomas attractor</div>
+<div id="pt-count"></div>
+
+<div id="ctrl-trigger"></div>
+<div id="controls">
+
+  <div class="ctrl-row">
+    <label class="ctrl-label">b</label>
+    <input type="range" id="b-slider" min="10" max="30" value="19" step="1">
+    <span class="ctrl-val" id="b-val">0.19</span>
+  </div>
+
+  <div class="ctrl-row">
+    <label class="ctrl-label">θ yaw</label>
+    <input type="range" id="theta-slider" min="0" max="628" value="80" step="1">
+    <span class="ctrl-val" id="theta-val">0.80</span>
+  </div>
+
+  <div class="ctrl-row">
+    <label class="ctrl-label">φ pitch</label>
+    <input type="range" id="phi-slider" min="-157" max="157" value="30" step="1">
+    <span class="ctrl-val" id="phi-val">0.30</span>
+  </div>
+
+  <div class="ctrl-row">
+    <label class="ctrl-label">Points</label>
+    <input type="range" id="iter-slider" min="5000" max="50000" value="30000" step="1000">
+    <span class="ctrl-val" id="iter-val">30k</span>
+  </div>
+
+  <div class="ctrl-row">
+    <label class="ctrl-label">Opacity</label>
+    <input type="range" id="opacity-slider" min="20" max="100" value="60" step="1">
+    <span class="ctrl-val" id="opacity-val">0.60</span>
+  </div>
+
+  <div class="ctrl-row">
+    <label class="ctrl-label">Line</label>
+    <input type="color" id="line-color" value="#ffffff">
+  </div>
+
+  <div class="ctrl-row">
+    <label class="ctrl-label">Background</label>
+    <input type="color" id="bg-color" value="#000000">
+  </div>
+
+  <div class="ctrl-row">
+    <label class="ctrl-label">Export size</label>
+    <div style="display:flex;gap:4px" id="size-btns">
+      <button class="toggle-btn" data-w="1280" data-h="720">720p</button>
+      <button class="toggle-btn active" data-w="1920" data-h="1080">1080p</button>
+      <button class="toggle-btn" data-w="2560" data-h="1440">1440p</button>
+      <button class="toggle-btn" data-w="3840" data-h="2160">4K</button>
+    </div>
+    <button id="export-btn">↓ SVG</button>
+  </div>
+
+</div>
+
+<script>
+// (JS added in subsequent tasks)
+</script>
+</body>
+</html>
