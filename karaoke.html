@@ -559,8 +559,51 @@ function renderLyrics() {
     panel.appendChild(div);
   });
 }
-function assignTimestamps(duration) { /* Task 6 */ }
-function startPolling() { /* Task 6 */ }
+function assignTimestamps(duration) {
+  const count = APP.lyrics.length;
+  APP.timestamps = APP.lyrics.map((_, i) => (i / count) * duration);
+}
+
+function currentLineFor(currentTime) {
+  let idx = 0;
+  for (let i = 0; i < APP.timestamps.length; i++) {
+    if (APP.timestamps[i] <= currentTime) idx = i;
+    else break;
+  }
+  return idx;
+}
+
+function startPolling() {
+  if (APP.pollInterval) clearInterval(APP.pollInterval);
+  APP.pollInterval = setInterval(() => {
+    if (!APP.player || typeof APP.player.getCurrentTime !== 'function') return;
+    const t = APP.player.getCurrentTime();
+    const next = currentLineFor(t);
+    if (next !== APP.currentLine) {
+      updateCurrentLine(next);
+    }
+  }, 500);
+}
+
+function updateCurrentLine(index) {
+  APP.currentLine = index;
+  const panel = document.getElementById('lyrics-panel');
+  const lines = panel.querySelectorAll('.lyric-line');
+
+  lines.forEach((el, i) => {
+    el.classList.remove('current', 'past', 'upcoming');
+    if (i < index) el.classList.add('past');
+    else if (i === index) el.classList.add('current');
+    else el.classList.add('upcoming');
+  });
+
+  // Scroll current line into center of panel
+  const currentEl = lines[index];
+  if (currentEl) {
+    currentEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
 function showRecap() { /* Task 8 */ }
 
 // Run on load
