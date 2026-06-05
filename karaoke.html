@@ -697,7 +697,13 @@ function showRecap() {
   allKeywords.forEach(kw => {
     const card = document.createElement('div');
     card.className = 'recap-kw';
-    card.innerHTML = `<div class="recap-kw-word">${kw.word}</div><div class="recap-kw-meaning">${kw.meaning}</div>`;
+    const wordEl = document.createElement('div');
+    wordEl.className = 'recap-kw-word';
+    wordEl.textContent = kw.word;
+    const meaningEl = document.createElement('div');
+    meaningEl.className = 'recap-kw-meaning';
+    meaningEl.textContent = kw.meaning;
+    card.append(wordEl, meaningEl);
     grid.appendChild(card);
   });
 
@@ -708,7 +714,7 @@ function uniqueKeywords(lyrics) {
   const seen = new Set();
   const result = [];
   for (const line of lyrics) {
-    for (const kw of line.keywords) {
+    for (const kw of (line.keywords ?? [])) {
       const key = kw.word.toLowerCase();
       if (!seen.has(key)) {
         seen.add(key);
@@ -726,8 +732,10 @@ document.getElementById('btn-recap-close').addEventListener('click', () => {
 document.getElementById('btn-recap-replay').addEventListener('click', () => {
   document.getElementById('modal-recap').style.display = 'none';
   APP.currentLine = -1;
-  APP.player.seekTo(0);
-  APP.player.playVideo();
+  if (APP.player) {
+    APP.player.seekTo(0);
+    APP.player.playVideo();
+  }
 });
 
 // ── TAP-TO-TRANSLATE ──────────────────────────────────────────────────────────
