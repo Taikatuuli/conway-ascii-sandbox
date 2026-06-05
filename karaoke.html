@@ -61,13 +61,95 @@
     }
     input:focus, textarea:focus, select:focus { border-color: var(--accent); }
     select option { background: var(--surface); }
+
+    /* Input screen */
+    #screen-input { align-items: center; justify-content: center; padding: 32px 16px; overflow-y: auto; }
+
+    .input-wrap {
+      width: 100%;
+      max-width: 560px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .app-title {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .app-title span { color: var(--accent); }
+
+    .app-subtitle { color: var(--text-muted); font-size: 14px; }
+
+    .field-group { display: flex; flex-direction: column; gap: 6px; }
+
+    .field-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+
+    .field-hint { font-size: 12px; color: var(--text-muted); }
+
+    textarea { resize: vertical; min-height: 140px; line-height: 1.5; }
+
+    #btn-start { align-self: flex-start; padding: 12px 28px; font-size: 15px; }
+
+    .inline-error {
+      font-size: 13px;
+      color: #f87171;
+      padding: 8px 12px;
+      background: rgba(248, 113, 113, 0.1);
+      border: 1px solid rgba(248, 113, 113, 0.3);
+      border-radius: 6px;
+    }
   </style>
 </head>
 <body>
 <div id="app">
 
   <div id="screen-input" class="screen active">
-    <!-- Task 2 -->
+    <div class="input-wrap">
+    <h1 class="app-title">Karaoke <span>学習</span></h1>
+    <p class="app-subtitle">Paste a YouTube link and lyrics to start learning</p>
+
+    <div id="apikey-prompt" class="field-group" style="display:none">
+      <label class="field-label">Anthropic API Key</label>
+      <input type="password" id="input-apikey" placeholder="sk-ant-…">
+      <p class="field-hint">Stored locally in your browser. Never sent anywhere except Anthropic.</p>
+      <div class="inline-error" id="apikey-error" style="display:none"></div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">YouTube URL</label>
+      <input type="text" id="input-url" placeholder="https://www.youtube.com/watch?v=…">
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Target Language</label>
+      <select id="input-language">
+        <option value="">Select a language…</option>
+        <option value="Spanish">Spanish</option>
+        <option value="French">French</option>
+        <option value="Japanese">Japanese</option>
+        <option value="Mandarin">Mandarin</option>
+        <option value="Korean">Korean</option>
+        <option value="Portuguese">Portuguese</option>
+      </select>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Lyrics</label>
+      <textarea id="input-lyrics" rows="10" placeholder="Paste one lyric line per row…"></textarea>
+    </div>
+
+    <div class="inline-error" id="input-error" style="display:none"></div>
+
+    <button class="primary" id="btn-start">Translate &amp; Play →</button>
+  </div>
   </div>
 
   <div id="screen-loading" class="screen">
@@ -107,6 +189,74 @@ function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   target.classList.add('active');
 }
+
+// ── UTILITIES ─────────────────────────────────────────────────────────────────
+function extractVideoId(url) {
+  const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]{11})/);
+  return m ? m[1] : null;
+}
+
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function clearError(id) { document.getElementById(id).style.display = 'none'; }
+
+// ── API KEY GATE ──────────────────────────────────────────────────────────────
+function initApiKey() {
+  APP.apiKey = localStorage.getItem('anthropic_api_key');
+  if (!APP.apiKey) {
+    document.getElementById('apikey-prompt').style.display = 'flex';
+    document.getElementById('apikey-prompt').style.flexDirection = 'column';
+    document.getElementById('apikey-prompt').style.gap = '6px';
+  }
+}
+
+function getOrSaveApiKey() {
+  if (APP.apiKey) return APP.apiKey;
+  const val = document.getElementById('input-apikey').value.trim();
+  if (!val) {
+    showError('apikey-error', 'Please enter your Anthropic API key.');
+    return null;
+  }
+  localStorage.setItem('anthropic_api_key', val);
+  APP.apiKey = val;
+  return val;
+}
+
+// ── START BUTTON ──────────────────────────────────────────────────────────────
+document.getElementById('btn-start').addEventListener('click', async () => {
+  clearError('input-error');
+  clearError('apikey-error');
+
+  const key = getOrSaveApiKey();
+  if (!key) return;
+
+  const url = document.getElementById('input-url').value.trim();
+  const language = document.getElementById('input-language').value;
+  const rawLyrics = document.getElementById('input-lyrics').value;
+
+  if (!extractVideoId(url)) {
+    showError('input-error', 'Could not find a YouTube video ID in that URL.');
+    return;
+  }
+  if (!language) {
+    showError('input-error', 'Please select a target language.');
+    return;
+  }
+  const lines = rawLyrics.split('\n').map(l => l.trim()).filter(Boolean);
+  if (lines.length < 2) {
+    showError('input-error', 'Please paste at least 2 lyric lines.');
+    return;
+  }
+
+  APP.language = language;
+  await startTranslation(lines, url);
+});
+
+// Run on load
+initApiKey();
 </script>
 </body>
 </html>
