@@ -163,6 +163,63 @@
       scroll-behavior: smooth;
     }
 
+    /* Lyric lines */
+    .lyric-line {
+      padding: 20px 16px 20px 20px;
+      border-left: 4px solid transparent;
+      transition: border-color 0.3s, opacity 0.3s;
+      cursor: default;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .lyric-line.past { opacity: 0.35; }
+
+    .lyric-line.upcoming { opacity: 0.6; }
+
+    .lyric-line.current {
+      opacity: 1;
+      border-left-color: var(--accent);
+      background: rgba(74, 222, 128, 0.04);
+    }
+
+    .lyric-original {
+      font-size: 1.15rem;
+      font-weight: 400;
+      line-height: 1.4;
+      margin-bottom: 4px;
+      color: var(--text);
+      transition: font-size 0.3s, font-weight 0.3s;
+    }
+
+    .lyric-line.current .lyric-original {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .lyric-phonetic {
+      font-size: 0.8rem;
+      color: var(--phonetic);
+      margin-bottom: 3px;
+      line-height: 1.4;
+    }
+
+    .lyric-translation {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-style: italic;
+      line-height: 1.4;
+    }
+
+    /* Word spans (tap-to-translate) */
+    .word {
+      display: inline;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: background 0.1s;
+    }
+    .word:hover { background: rgba(74, 222, 128, 0.15); }
+
     /* Mobile */
     @media (max-width: 767px) {
       #screen-player { flex-direction: column; }
@@ -472,7 +529,36 @@ function onPlayerStateChange(e) {
 }
 
 // ── STUBS FOR LATER TASKS ─────────────────────────────────────────────────────
-function renderLyrics() { /* Task 5 */ }
+function renderLyrics() {
+  const panel = document.getElementById('lyrics-panel');
+  panel.innerHTML = '';
+  APP.lyrics.forEach((line, i) => {
+    const div = document.createElement('div');
+    div.className = 'lyric-line upcoming';
+    div.dataset.index = i;
+
+    // Original — words wrapped for tap-to-translate
+    const origEl = document.createElement('div');
+    origEl.className = 'lyric-original';
+    origEl.innerHTML = line.original
+      .split(/(\s+)/)
+      .map(chunk => /\s/.test(chunk)
+        ? chunk
+        : `<span class="word" data-line="${i}">${chunk}</span>`)
+      .join('');
+
+    const phonEl = document.createElement('div');
+    phonEl.className = 'lyric-phonetic';
+    phonEl.textContent = line.phonetic;
+
+    const transEl = document.createElement('div');
+    transEl.className = 'lyric-translation';
+    transEl.textContent = line.translation;
+
+    div.append(origEl, phonEl, transEl);
+    panel.appendChild(div);
+  });
+}
 function assignTimestamps(duration) { /* Task 6 */ }
 function startPolling() { /* Task 6 */ }
 function showRecap() { /* Task 8 */ }
