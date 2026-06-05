@@ -426,6 +426,7 @@ window.onYouTubeIframeAPIReady = function() {
 };
 
 function initPlayer(videoId) {
+  APP.durationRetries = 0;
   showScreen('screen-player');
   renderLyrics();
   if (ytApiReady) {
