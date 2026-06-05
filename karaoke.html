@@ -244,6 +244,56 @@
       line-height: 1.4;
     }
 
+    /* Recap modal */
+    #modal-recap {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      padding: 24px;
+    }
+
+    .recap-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      max-width: 600px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .recap-card h2 {
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+    .recap-card h2 span { color: var(--accent); }
+
+    .recap-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 10px;
+    }
+
+    .recap-kw {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+    .recap-kw-word { font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 4px; }
+    .recap-kw-meaning { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+
+    .recap-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
     /* Mobile */
     @media (max-width: 767px) {
       #screen-player { flex-direction: column; }
@@ -319,7 +369,14 @@
   </div>
 
   <div id="modal-recap" style="display:none">
-    <!-- Task 8 -->
+    <div class="recap-card">
+      <h2 id="recap-title"></h2>
+      <div id="recap-grid" class="recap-grid"></div>
+      <div class="recap-actions">
+        <button class="secondary" id="btn-recap-close">Close</button>
+        <button class="primary" id="btn-recap-replay">Watch Again</button>
+      </div>
+    </div>
   </div>
 
   <div id="tooltip" role="tooltip" style="display:none">
@@ -629,7 +686,49 @@ function updateCurrentLine(index) {
   }
 }
 
-function showRecap() { /* Task 8 */ }
+function showRecap() {
+  const allKeywords = uniqueKeywords(APP.lyrics);
+
+  document.getElementById('recap-title').innerHTML =
+    `You learned <span>${allKeywords.length} words</span> in ${APP.language}!`;
+
+  const grid = document.getElementById('recap-grid');
+  grid.innerHTML = '';
+  allKeywords.forEach(kw => {
+    const card = document.createElement('div');
+    card.className = 'recap-kw';
+    card.innerHTML = `<div class="recap-kw-word">${kw.word}</div><div class="recap-kw-meaning">${kw.meaning}</div>`;
+    grid.appendChild(card);
+  });
+
+  document.getElementById('modal-recap').style.display = 'flex';
+}
+
+function uniqueKeywords(lyrics) {
+  const seen = new Set();
+  const result = [];
+  for (const line of lyrics) {
+    for (const kw of line.keywords) {
+      const key = kw.word.toLowerCase();
+      if (!seen.has(key)) {
+        seen.add(key);
+        result.push(kw);
+      }
+    }
+  }
+  return result;
+}
+
+document.getElementById('btn-recap-close').addEventListener('click', () => {
+  document.getElementById('modal-recap').style.display = 'none';
+});
+
+document.getElementById('btn-recap-replay').addEventListener('click', () => {
+  document.getElementById('modal-recap').style.display = 'none';
+  APP.currentLine = -1;
+  APP.player.seekTo(0);
+  APP.player.playVideo();
+});
 
 // ── TAP-TO-TRANSLATE ──────────────────────────────────────────────────────────
 let tooltipTimer = null;
