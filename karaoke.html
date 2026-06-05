@@ -78,11 +78,11 @@
     <!-- Task 4/5 -->
   </div>
 
-  <div id="modal-recap">
+  <div id="modal-recap" style="display:none">
     <!-- Task 8 -->
   </div>
 
-  <div id="tooltip" role="tooltip">
+  <div id="tooltip" role="tooltip" style="display:none">
     <!-- Task 7 -->
   </div>
 
@@ -102,8 +102,10 @@ const APP = {
 
 // ── SCREEN TRANSITIONS ────────────────────────────────────────────────────────
 function showScreen(id) {
+  const target = document.getElementById(id);
+  if (!target) { console.error('showScreen: no element with id', id); return; }
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+  target.classList.add('active');
 }
 </script>
 </body>
