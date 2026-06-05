@@ -403,6 +403,8 @@ const APP = {
   durationRetries: 0,
 };
 
+let translationGeneration = 0;
+
 // ── SCREEN TRANSITIONS ────────────────────────────────────────────────────────
 function showScreen(id) {
   const target = document.getElementById(id);
@@ -415,6 +417,10 @@ function showScreen(id) {
 function extractVideoId(url) {
   const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/?|youtube\.com\/shorts\/)([^&\n?#]{11})/);
   return m ? m[1] : null;
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 function showError(id, msg) {
@@ -492,11 +498,14 @@ document.getElementById('btn-start').addEventListener('click', async () => {
 
 // ── TRANSLATION PIPELINE ──────────────────────────────────────────────────────
 async function startTranslation(lines, youtubeUrl) {
+  const gen = ++translationGeneration;
   showScreen('screen-loading');
   document.getElementById('loading-msg').textContent = `Translating ${lines.length} lines…`;
   document.getElementById('loading-sub').textContent = 'This takes a few seconds';
 
   document.getElementById('btn-cancel').onclick = () => {
+    translationGeneration++; // invalidate any in-flight request
+    if (APP.pollInterval) { clearInterval(APP.pollInterval); APP.pollInterval = null; }
     showScreen('screen-input');
   };
 
@@ -516,6 +525,7 @@ async function startTranslation(lines, youtubeUrl) {
     return;
   }
 
+  if (gen !== translationGeneration) return; // cancelled
   APP.lyrics = lyrics;
   const hasPartialData = lyrics.some(l => !l.translation);
   if (hasPartialData) {
@@ -551,7 +561,7 @@ ${lines.map((l, i) => `${i + 1}. ${l}`).join('\n')}`;
     },
     body: JSON.stringify({
       model: 'claude-sonnet-4-6',
-      max_tokens: 4096,
+      max_tokens: 8192,
       messages: [{ role: 'user', content: prompt }],
     }),
   });
@@ -649,8 +659,8 @@ function renderLyrics() {
     origEl.innerHTML = line.original
       .split(/(\s+)/)
       .map(chunk => /\s/.test(chunk)
-        ? chunk
-        : `<span class="word" data-line="${i}">${chunk}</span>`)
+        ? escapeHtml(chunk)
+        : `<span class="word" data-line="${i}">${escapeHtml(chunk)}</span>`)
       .join('');
 
     const phonEl = document.createElement('div');
@@ -713,8 +723,13 @@ function updateCurrentLine(index) {
 function showRecap() {
   const allKeywords = uniqueKeywords(APP.lyrics);
 
-  document.getElementById('recap-title').innerHTML =
-    `You learned <span>${allKeywords.length} words</span> in ${APP.language}!`;
+  const titleEl = document.getElementById('recap-title');
+  titleEl.textContent = '';
+  titleEl.append(
+    'You learned ',
+    Object.assign(document.createElement('span'), { textContent: `${allKeywords.length} words` }),
+    ` in ${APP.language}!`
+  );
 
   const grid = document.getElementById('recap-grid');
   grid.innerHTML = '';
