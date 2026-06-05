@@ -220,6 +220,30 @@
     }
     .word:hover { background: rgba(74, 222, 128, 0.15); }
 
+    /* Tooltip */
+    #tooltip {
+      position: fixed;
+      z-index: 100;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      pointer-events: none;
+      max-width: 240px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    .tooltip-word {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 3px;
+    }
+    .tooltip-meaning {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
     /* Mobile */
     @media (max-width: 767px) {
       #screen-player { flex-direction: column; }
@@ -299,7 +323,8 @@
   </div>
 
   <div id="tooltip" role="tooltip" style="display:none">
-    <!-- Task 7 -->
+    <div class="tooltip-word" id="tooltip-word"></div>
+    <div class="tooltip-meaning" id="tooltip-meaning"></div>
   </div>
 
 </div>
@@ -605,6 +630,50 @@ function updateCurrentLine(index) {
 }
 
 function showRecap() { /* Task 8 */ }
+
+// ── TAP-TO-TRANSLATE ──────────────────────────────────────────────────────────
+let tooltipTimer = null;
+
+document.getElementById('lyrics-panel').addEventListener('click', e => {
+  const wordEl = e.target.closest('.word');
+  if (!wordEl) return;
+
+  const lineIndex = parseInt(wordEl.dataset.line, 10);
+  if (lineIndex !== APP.currentLine) return; // only current line
+
+  const word = wordEl.textContent.trim().replace(/[.,!?;:'"…—]/g, '');
+  const lineData = APP.lyrics[lineIndex];
+  const kw = lineData?.keywords.find(
+    k => k.word.toLowerCase() === word.toLowerCase()
+  );
+
+  const tooltip = document.getElementById('tooltip');
+  document.getElementById('tooltip-word').textContent = word;
+  document.getElementById('tooltip-meaning').textContent =
+    kw ? kw.meaning : 'No translation available';
+
+  // Position tooltip near word
+  const rect = wordEl.getBoundingClientRect();
+  tooltip.style.display = 'block';
+  const ttW = 240;
+  let left = rect.left;
+  if (left + ttW > window.innerWidth - 8) left = window.innerWidth - ttW - 8;
+  tooltip.style.left = `${left}px`;
+  tooltip.style.top = `${rect.bottom + 6}px`;
+
+  // Auto-dismiss after 3s
+  clearTimeout(tooltipTimer);
+  tooltipTimer = setTimeout(hideTooltip, 3000);
+});
+
+document.addEventListener('mousedown', e => {
+  if (!e.target.closest('#tooltip') && !e.target.closest('.word')) hideTooltip();
+});
+
+function hideTooltip() {
+  clearTimeout(tooltipTimer);
+  document.getElementById('tooltip').style.display = 'none';
+}
 
 // Run on load
 initApiKey();
