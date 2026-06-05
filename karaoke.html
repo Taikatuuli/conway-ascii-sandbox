@@ -124,12 +124,12 @@
     </div>
 
     <div class="field-group">
-      <label class="field-label">YouTube URL</label>
+      <label class="field-label" for="input-url">YouTube URL</label>
       <input type="text" id="input-url" placeholder="https://www.youtube.com/watch?v=…">
     </div>
 
     <div class="field-group">
-      <label class="field-label">Target Language</label>
+      <label class="field-label" for="input-language">Target Language</label>
       <select id="input-language">
         <option value="">Select a language…</option>
         <option value="Spanish">Spanish</option>
@@ -142,7 +142,7 @@
     </div>
 
     <div class="field-group">
-      <label class="field-label">Lyrics</label>
+      <label class="field-label" for="input-lyrics">Lyrics</label>
       <textarea id="input-lyrics" rows="10" placeholder="Paste one lyric line per row…"></textarea>
     </div>
 
@@ -192,7 +192,7 @@ function showScreen(id) {
 
 // ── UTILITIES ─────────────────────────────────────────────────────────────────
 function extractVideoId(url) {
-  const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]{11})/);
+  const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/?|youtube\.com\/shorts\/)([^&\n?#]{11})/);
   return m ? m[1] : null;
 }
 
@@ -208,8 +208,6 @@ function initApiKey() {
   APP.apiKey = localStorage.getItem('anthropic_api_key');
   if (!APP.apiKey) {
     document.getElementById('apikey-prompt').style.display = 'flex';
-    document.getElementById('apikey-prompt').style.flexDirection = 'column';
-    document.getElementById('apikey-prompt').style.gap = '6px';
   }
 }
 
@@ -218,6 +216,10 @@ function getOrSaveApiKey() {
   const val = document.getElementById('input-apikey').value.trim();
   if (!val) {
     showError('apikey-error', 'Please enter your Anthropic API key.');
+    return null;
+  }
+  if (!val.startsWith('sk-ant-')) {
+    showError('apikey-error', "That doesn't look like an Anthropic API key (should start with sk-ant-).");
     return null;
   }
   localStorage.setItem('anthropic_api_key', val);
@@ -254,6 +256,9 @@ document.getElementById('btn-start').addEventListener('click', async () => {
   APP.language = language;
   await startTranslation(lines, url);
 });
+
+// Stub — replaced in Task 3
+async function startTranslation(lines, url) {}
 
 // Run on load
 initApiKey();
