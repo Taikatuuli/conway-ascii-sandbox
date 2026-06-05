@@ -643,7 +643,7 @@ document.getElementById('lyrics-panel').addEventListener('click', e => {
 
   const word = wordEl.textContent.trim().replace(/[.,!?;:'"…—]/g, '');
   const lineData = APP.lyrics[lineIndex];
-  const kw = lineData?.keywords.find(
+  const kw = lineData?.keywords?.find(
     k => k.word.toLowerCase() === word.toLowerCase()
   );
 
@@ -656,10 +656,14 @@ document.getElementById('lyrics-panel').addEventListener('click', e => {
   const rect = wordEl.getBoundingClientRect();
   tooltip.style.display = 'block';
   const ttW = 240;
+  const ttH = tooltip.offsetHeight;
   let left = rect.left;
   if (left + ttW > window.innerWidth - 8) left = window.innerWidth - ttW - 8;
+  const top = (rect.bottom + 6 + ttH > window.innerHeight - 8)
+    ? rect.top - ttH - 6
+    : rect.bottom + 6;
   tooltip.style.left = `${left}px`;
-  tooltip.style.top = `${rect.bottom + 6}px`;
+  tooltip.style.top = `${top}px`;
 
   // Auto-dismiss after 3s
   clearTimeout(tooltipTimer);
@@ -667,7 +671,7 @@ document.getElementById('lyrics-panel').addEventListener('click', e => {
 });
 
 document.addEventListener('mousedown', e => {
-  if (!e.target.closest('#tooltip') && !e.target.closest('.word')) hideTooltip();
+  if (!e.target.closest('.word')) hideTooltip();
 });
 
 function hideTooltip() {
