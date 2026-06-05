@@ -315,6 +315,7 @@
       <input type="password" id="input-apikey" placeholder="sk-ant-…">
       <p class="field-hint">Stored locally in your browser. Never sent anywhere except Anthropic.</p>
       <div class="inline-error" id="apikey-error" style="display:none"></div>
+      <a id="reset-apikey" href="#" style="display:none;font-size:12px;color:var(--phonetic)">Reset saved API key</a>
     </div>
 
     <div class="field-group">
@@ -366,6 +367,9 @@
     </div>
     <div class="lyrics-col" id="lyrics-panel">
     </div>
+  <div id="translation-warning" style="display:none;position:fixed;top:12px;right:12px;background:#1a1a1a;border:1px solid #f87171;color:#f87171;font-size:12px;padding:8px 12px;border-radius:6px;z-index:20">
+    Translation incomplete — showing original lyrics only
+  </div>
   </div>
 
   <div id="modal-recap" style="display:none">
@@ -424,8 +428,20 @@ function initApiKey() {
   APP.apiKey = localStorage.getItem('anthropic_api_key');
   if (!APP.apiKey) {
     document.getElementById('apikey-prompt').style.display = 'flex';
+  } else {
+    const resetLink = document.getElementById('reset-apikey');
+    if (resetLink) resetLink.style.display = 'inline';
   }
 }
+
+document.getElementById('reset-apikey')?.addEventListener('click', e => {
+  e.preventDefault();
+  localStorage.removeItem('anthropic_api_key');
+  APP.apiKey = null;
+  document.getElementById('apikey-prompt').style.display = 'flex';
+  document.getElementById('reset-apikey').style.display = 'none';
+  showError('apikey-error', 'API key cleared. Please enter a new one.');
+});
 
 function getOrSaveApiKey() {
   if (APP.apiKey) return APP.apiKey;
@@ -500,6 +516,13 @@ async function startTranslation(lines, youtubeUrl) {
   }
 
   APP.lyrics = lyrics;
+  const hasPartialData = lyrics.some(l => !l.translation);
+  if (hasPartialData) {
+    document.getElementById('translation-warning').style.display = 'block';
+    setTimeout(() => {
+      document.getElementById('translation-warning').style.display = 'none';
+    }, 5000);
+  }
   initPlayer(extractVideoId(youtubeUrl));
 }
 
@@ -610,7 +633,7 @@ function onPlayerStateChange(e) {
   if (e.data === YT.PlayerState.ENDED) showRecap();
 }
 
-// ── STUBS FOR LATER TASKS ─────────────────────────────────────────────────────
+// ── LYRICS RENDERING ─────────────────────────────────────────────────────────
 function renderLyrics() {
   const panel = document.getElementById('lyrics-panel');
   panel.innerHTML = '';
