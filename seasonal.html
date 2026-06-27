@@ -76,7 +76,7 @@
 
 /* Photo frame */
 #photo-frame {
-  width: 220px; height: 220px; border-radius: 50%;
+  width: 260px; height: 260px; border-radius: 16px;
   overflow: hidden; position: relative;
   box-shadow: 0 4px 20px rgba(0,0,0,0.1);
   flex-shrink: 0;
@@ -86,8 +86,11 @@
   transition: background-color 0.2s;
 }
 #photo-img {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
+  position: absolute;
+  width: 200px; height: 200px;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
   object-fit: cover;
 }
 
@@ -617,7 +620,7 @@ document.getElementById('crop-confirm').addEventListener('click', () => {
   const drawX = OUTPUT_SIZE / 2 + crop.x * ratio - drawW / 2;
   const drawY = OUTPUT_SIZE / 2 + crop.y * ratio - drawH / 2;
   ctx.drawImage(cropNaturalImg, drawX, drawY, drawW, drawH);
-  state.photoUrl = canvas.toDataURL('image/jpeg', 0.92);
+  state.photoUrl = canvas.toDataURL('image/png');
   document.getElementById('crop-screen').classList.remove('active');
   showExplorer();
 });
