@@ -20,14 +20,14 @@ Three modes, toggled via a pill toggle in the photo panel:
 A single swatch color fills the entire background behind the photo. Clicking any swatch in the palette panel updates the background color instantly.
 
 ### Stripes
-The currently selected sub-season's palette colors appear as equal-width vertical strips behind the photo — mimicking a real color draping session.
+All 12 colors of the currently active sub-season appear simultaneously as equal-width vertical strips behind the photo — mimicking a real color draping session. Individual swatches are not clickable in this mode; switching sub-seasons updates all strips at once.
 
 ### Metals
 The palette panel dims (non-interactive). Two buttons appear below the photo: **✦ Gold** and **✦ Silver**. Clicking each fills the background with the corresponding foil texture image (user-provided, embedded as base64 in the HTML). This is a quick undertone check.
 
 ## Season Data — 12 Sub-Seasons
 
-Organized into 4 family tabs. Each sub-season has a name, 3 trait keywords, and 5 hex swatches.
+Organized into 4 family tabs. Each sub-season has a name, 3 trait keywords, and 12 hex swatches curated from seasonal color theory.
 
 | Family | Sub-season | Traits |
 |--------|-----------|--------|
@@ -67,7 +67,7 @@ Both embedded as base64 data URLs so the file remains fully self-contained. Appl
 - Photo frame uses `position: relative`; background layer is `position: absolute; inset: 0` behind the photo.
 - Stripes mode: dynamically generates N equal-width `<div>` strips from the active sub-season's swatch array.
 - Metals mode: switches background to `background-image: url(...)` with the embedded base64 texture.
-- Active state tracked in JS: `{ mode, familyIndex, subSeasonIndex, swatchIndex }`.
+- Active state tracked in JS: `{ mode, familyIndex, subSeasonIndex, swatchIndex }`. In Stripes mode, `swatchIndex` is unused.
 - All state changes re-render only the background layer — photo element stays mounted.
 
 ## Out of Scope
@@ -75,4 +75,4 @@ Both embedded as base64 data URLs so the file remains fully self-contained. Appl
 - Automated color analysis of the uploaded photo
 - Saving or sharing results
 - Mobile layout (desktop-first for now)
-- More than 5 swatches per sub-season
+- More than Expanding beyond 12 swatches per sub-season
