@@ -452,10 +452,12 @@ document.getElementById('family-tabs').addEventListener('click', e => {
 
 document.getElementById('sub-list').addEventListener('click', e => {
   const swatch = e.target.closest('.swatch');
-  if (swatch && state.mode !== 'stripes') {
-    state.subIndex = +swatch.dataset.si;
-    state.swatchIndex = +swatch.dataset.wi;
-    render();
+  if (swatch) {
+    if (state.mode === 'solid') {
+      state.subIndex = +swatch.dataset.si;
+      state.swatchIndex = +swatch.dataset.wi;
+      render();
+    }
     return;
   }
   const card = e.target.closest('.sub-card');
