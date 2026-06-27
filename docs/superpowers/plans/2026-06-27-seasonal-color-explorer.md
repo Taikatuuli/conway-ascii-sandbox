@@ -1,0 +1,731 @@
+# Seasonal Color Explorer Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Build `seasonal.html` — a self-contained single-page app where a user uploads a photo and tries on the 12 seasonal color palettes (solid color, vertical stripes, or foil metal textures as background) to discover their color season.
+
+**Architecture:** Single HTML file with no dependencies or build step. All JS inline in `<script>` tags, all CSS in `<style>` tags. Two screens rendered by toggling CSS classes: upload screen and explorer screen. State is a plain JS object; every interaction calls a single `render()` function that updates only the affected DOM nodes.
+
+**Tech Stack:** Vanilla HTML/CSS/JS, Canvas-free (photo loaded via FileReader as a data URL and displayed in an `<img>` tag), base64-embedded foil textures.
+
+---
+
+## File Structure
+
+| File | Role |
+|------|------|
+| `seasonal.html` | Entire app — data, markup, styles, logic |
+
+---
+
+### Task 1: Scaffold the file and upload screen
+
+**Files:**
+- Create: `seasonal.html`
+
+- [ ] **Step 1: Create the file with the upload screen**
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seasonal</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, sans-serif; background: #fff; color: #111; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* ── Header ── */
+  #header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 20px; border-bottom: 1.5px solid #eee;
+    flex-shrink: 0; background: #fff;
+  }
+  .dots { display: flex; gap: 5px; }
+  .dots span { width: 11px; height: 11px; border-radius: 50%; display: block; }
+  #app-name { font-weight: 800; font-size: 15px; letter-spacing: -0.3px; }
+  #new-photo-btn {
+    margin-left: auto; font-size: 11px; color: #aaa;
+    cursor: pointer; text-decoration: underline; border: none;
+    background: none; display: none;
+  }
+
+  /* ── Screens ── */
+  .screen { display: none; flex: 1; }
+  .screen.active { display: flex; }
+
+  /* ── Upload screen ── */
+  #upload-screen {
+    flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+  }
+  #upload-heading { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+  #upload-sub { font-size: 13px; color: #999; }
+  #drop-zone {
+    width: 260px; height: 180px;
+    border: 2.5px dashed #ddd; border-radius: 16px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 8px;
+    cursor: pointer; transition: border-color 0.2s;
+  }
+  #drop-zone:hover, #drop-zone.drag-over { border-color: #111; }
+  #drop-zone .icon { font-size: 28px; }
+  #drop-zone .label { font-size: 13px; font-weight: 600; }
+  #drop-zone .hint { font-size: 11px; color: #bbb; }
+  #file-input { display: none; }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="dots">
+    <span style="background:#F4C2A1"></span>
+    <span style="background:#A8C4D4"></span>
+    <span style="background:#C4A882"></span>
+    <span style="background:#2C2C3E"></span>
+  </div>
+  <span id="app-name">Seasonal</span>
+  <button id="new-photo-btn">Upload new photo</button>
+</div>
+
+<div id="upload-screen" class="screen active">
+  <div id="upload-heading">What's your season?</div>
+  <div id="upload-sub">Upload a photo to try on colour palettes</div>
+  <div id="drop-zone">
+    <span class="icon">🖼</span>
+    <span class="label">Drop a photo here</span>
+    <span class="hint">or click to browse</span>
+  </div>
+  <input type="file" id="file-input" accept="image/*">
+</div>
+
+<div id="explorer-screen" class="screen">
+  <!-- filled in Task 3 -->
+</div>
+
+<script>
+// ── State ──
+const state = {
+  photoUrl: null,
+  mode: 'solid',       // 'solid' | 'stripes' | 'metals'
+  familyIndex: 0,
+  subIndex: 0,
+  swatchIndex: 0,
+  metal: 'gold',       // 'gold' | 'silver'
+};
+
+// ── Upload wiring ──
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+
+dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) loadPhoto(file);
+});
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) loadPhoto(fileInput.files[0]);
+});
+
+function loadPhoto(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    state.photoUrl = e.target.result;
+    showExplorer();
+  };
+  reader.readAsDataURL(file);
+}
+
+function showExplorer() {
+  document.getElementById('upload-screen').classList.remove('active');
+  document.getElementById('explorer-screen').classList.add('active');
+  document.getElementById('new-photo-btn').style.display = 'block';
+}
+
+document.getElementById('new-photo-btn').addEventListener('click', () => {
+  state.photoUrl = null;
+  document.getElementById('explorer-screen').classList.remove('active');
+  document.getElementById('upload-screen').classList.add('active');
+  document.getElementById('new-photo-btn').style.display = 'none';
+  fileInput.value = '';
+});
+</script>
+</body>
+</html>
+```
+
+- [ ] **Step 2: Open in browser and verify upload screen**
+
+Open `seasonal.html` in a browser. You should see:
+- The "Seasonal" header with 4 colored dots
+- "What's your season?" heading
+- Dashed drop zone
+- Drag-over highlights the border when you drag a file onto it
+- Clicking the drop zone opens the file picker
+- After selecting an image, `showExplorer()` is called (explorer screen is empty for now)
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add seasonal.html
+git commit -m "feat: seasonal — upload screen and FileReader wiring"
+```
+
+---
+
+### Task 2: Define season data
+
+**Files:**
+- Modify: `seasonal.html` — add `SEASONS` constant before the state declaration
+
+- [ ] **Step 1: Add the season data constant**
+
+Insert the following inside the `<script>` tag, before `const state = {`:
+
+```js
+const SEASONS = [
+  {
+    family: 'Spring',
+    sub: [
+      {
+        name: 'True Spring',
+        traits: 'Warm · Clear · Golden',
+        swatches: ['#F9A870','#F7C566','#E8834A','#7CC8A0','#5BBCD0','#F4756B','#F2D06B','#8BC88B','#FF8C69','#FFB347','#87CEAB','#4DBDC8'],
+      },
+      {
+        name: 'Light Spring',
+        traits: 'Warm · Delicate · Light',
+        swatches: ['#FDD9B5','#FAEAC0','#F9C9A8','#B8E0CC','#A8D8E8','#F5B8B0','#FCE8A0','#C8E8C8','#FFD4B8','#FFE8A8','#C8ECD8','#B8D8E8'],
+      },
+      {
+        name: 'Bright Spring',
+        traits: 'Warm · Vivid · High Contrast',
+        swatches: ['#FF6B35','#FFD700','#FF4500','#00CC88','#00BBDD','#FF1493','#FFAA00','#00DD66','#FF5500','#FFCC00','#00CCAA','#FF3366'],
+      },
+    ],
+  },
+  {
+    family: 'Summer',
+    sub: [
+      {
+        name: 'Light Summer',
+        traits: 'Cool · Soft · Light',
+        swatches: ['#B8CDD8','#C4B8D4','#D4C0C8','#A8C8D0','#C0C8E0','#D0B8C8','#B8D0D8','#C8B8DC','#BCCCD8','#C8D0E0','#D4BCC8','#A8C0D0'],
+      },
+      {
+        name: 'True Summer',
+        traits: 'Cool · Muted · Medium',
+        swatches: ['#6B8FA8','#8A7A9A','#9A8A8A','#7A9A8A','#7A8FA0','#907888','#708898','#887098','#988080','#789088','#6A8898','#887890'],
+      },
+      {
+        name: 'Soft Summer',
+        traits: 'Cool · Greyed · Neutral',
+        swatches: ['#8A8A8A','#9A8A7A','#7A8A7A','#8A7A6A','#7A7A8A','#8A8478','#7E8880','#887A80','#808878','#7A8080','#888078','#807878'],
+      },
+    ],
+  },
+  {
+    family: 'Autumn',
+    sub: [
+      {
+        name: 'Soft Autumn',
+        traits: 'Warm · Muted · Neutral',
+        swatches: ['#C4A882','#B8956A','#D4B88A','#8A9870','#A89060','#C0A878','#B09068','#A8986A','#C4B080','#9A8858','#BCA870','#A09060'],
+      },
+      {
+        name: 'True Autumn',
+        traits: 'Warm · Rich · Medium',
+        swatches: ['#C47A3A','#8B5E3C','#5C3D2E','#6B8040','#C4922A','#A86830','#7A5030','#B88040','#506830','#C08030','#8A6040','#4A5828'],
+      },
+      {
+        name: 'Deep Autumn',
+        traits: 'Warm · Deep · Saturated',
+        swatches: ['#8B2500','#5C3317','#2D4A1A','#6B4010','#8B4A00','#4A2810','#3D5020','#703010','#5A1800','#483818','#2A3818','#6A3808'],
+      },
+    ],
+  },
+  {
+    family: 'Winter',
+    sub: [
+      {
+        name: 'Deep Winter',
+        traits: 'Cool · Deep · Rich',
+        swatches: ['#1A1A2E','#2D1B4E','#1A3A2A','#3A0A0A','#0A2A4A','#2A0A2E','#0A3A1A','#3A1A0A','#1A0A3A','#2A2A1A','#0A1A3A','#3A0A1E'],
+      },
+      {
+        name: 'True Winter',
+        traits: 'Cool · High Contrast · Vivid',
+        swatches: ['#C41E3A','#4169E1','#008080','#E8E8F0','#1A1A2E','#FF0066','#0066CC','#009988','#CC0033','#3355BB','#007766','#F0F0FF'],
+      },
+      {
+        name: 'Bright Winter',
+        traits: 'Cool · Vivid · High Contrast',
+        swatches: ['#FF0080','#0044FF','#00CC66','#FF003A','#6600CC','#00AAFF','#FF4488','#0033EE','#00FF88','#CC0066','#4400BB','#00BBFF'],
+      },
+    ],
+  },
+];
+```
+
+- [ ] **Step 2: Verify data in console**
+
+Open `seasonal.html`, open DevTools console, type:
+```js
+SEASONS.map(f => f.family + ': ' + f.sub.map(s => s.name + '(' + s.swatches.length + ')').join(', '))
+```
+Expected output: 4 entries, each with 3 sub-seasons, each showing `(12)`.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add seasonal.html
+git commit -m "feat: seasonal — 12-season colour data (144 swatches)"
+```
+
+---
+
+### Task 3: Build the explorer screen layout and palette panel
+
+**Files:**
+- Modify: `seasonal.html` — replace `#explorer-screen` content, add CSS
+
+- [ ] **Step 1: Add explorer layout CSS**
+
+Inside the `<style>` tag, append:
+
+```css
+/* ── Explorer screen ── */
+#explorer-screen { flex-direction: row; }
+
+/* ── Photo panel (left) ── */
+#photo-panel {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 16px;
+  padding: 24px; background: #fafafa;
+  border-right: 1.5px solid #eee;
+}
+
+/* Mode toggle */
+#mode-toggle {
+  display: flex; background: #efefef;
+  border-radius: 100px; padding: 3px; gap: 2px;
+}
+#mode-toggle button {
+  padding: 6px 14px; border-radius: 100px;
+  font-size: 12px; font-weight: 600;
+  border: none; cursor: pointer;
+  background: transparent; color: #777;
+  transition: all 0.15s;
+}
+#mode-toggle button.active {
+  background: #fff; color: #111;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+}
+
+/* Photo frame */
+#photo-frame {
+  width: 200px; height: 260px; border-radius: 14px;
+  overflow: hidden; position: relative;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  flex-shrink: 0;
+}
+#photo-bg {
+  position: absolute; inset: 0;
+  transition: background-color 0.2s;
+}
+#photo-img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+
+/* Controls below photo */
+#photo-hint { font-size: 11px; color: #bbb; }
+#metal-picker { display: none; gap: 10px; }
+#metal-picker button {
+  padding: 7px 18px; border-radius: 100px;
+  font-size: 12px; font-weight: 700; cursor: pointer;
+  border: 2.5px solid transparent; transition: all 0.15s;
+}
+#btn-gold {
+  background: linear-gradient(90deg,#C9A84C,#F0D060);
+  color: #5A3800; border-color: #C9A84C;
+}
+#btn-silver {
+  background: linear-gradient(90deg,#A8A8B8,#D8D8E8);
+  color: #333344; border-color: #bbb;
+}
+#btn-gold.active, #btn-silver.active { box-shadow: 0 0 0 3px #111; }
+
+/* ── Palette panel (right) ── */
+#palette-panel {
+  width: 270px; display: flex; flex-direction: column;
+  background: #fff; overflow: hidden;
+}
+
+/* Family tabs */
+#family-tabs {
+  display: flex; gap: 5px; padding: 12px 14px;
+  border-bottom: 1.5px solid #eee;
+  overflow-x: auto; scrollbar-width: none;
+}
+#family-tabs::-webkit-scrollbar { display: none; }
+.family-tab {
+  white-space: nowrap; padding: 5px 13px;
+  border-radius: 100px; font-size: 11px; font-weight: 700;
+  border: 1.5px solid #eee; background: #fff; cursor: pointer; color: #666;
+  transition: all 0.15s;
+}
+.family-tab.active { background: #111; color: #fff; border-color: #111; }
+
+/* Sub-season list */
+#sub-list {
+  flex: 1; overflow-y: auto; padding: 12px 14px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.sub-card {
+  border: 1.5px solid #eee; border-radius: 12px;
+  padding: 10px 12px; cursor: pointer; transition: border-color 0.15s;
+}
+.sub-card:hover { border-color: #aaa; }
+.sub-card.active { border-color: #111; border-width: 2px; }
+.sub-header {
+  display: flex; justify-content: space-between;
+  align-items: baseline; margin-bottom: 8px;
+}
+.sub-name { font-weight: 700; font-size: 12px; }
+.sub-traits { font-size: 10px; color: #aaa; }
+.swatches { display: flex; gap: 3px; flex-wrap: wrap; }
+.swatch {
+  width: 18px; height: 18px; border-radius: 4px;
+  cursor: pointer; border: 1.5px solid transparent;
+  flex-shrink: 0; transition: transform 0.1s;
+}
+.swatch:hover { transform: scale(1.2); }
+.swatch.active { outline: 2.5px solid #111; outline-offset: 2px; }
+
+/* Dim palette panel in metals mode */
+#palette-panel.dimmed { opacity: 0.3; pointer-events: none; }
+
+/* Panel footer */
+#panel-footer {
+  padding: 9px 14px; border-top: 1.5px solid #eee;
+  font-size: 10px; color: #bbb; background: #fafafa; flex-shrink: 0;
+}
+#panel-footer strong { color: #555; }
+```
+
+- [ ] **Step 2: Replace the empty `#explorer-screen` div with real markup**
+
+Find:
+```html
+<div id="explorer-screen" class="screen">
+  <!-- filled in Task 3 -->
+</div>
+```
+Replace with:
+```html
+<div id="explorer-screen" class="screen">
+  <div id="photo-panel">
+    <div id="mode-toggle">
+      <button data-mode="solid" class="active">Solid</button>
+      <button data-mode="stripes">Stripes</button>
+      <button data-mode="metals">Metals</button>
+    </div>
+    <div id="photo-frame">
+      <div id="photo-bg"></div>
+      <img id="photo-img" alt="Your photo">
+    </div>
+    <span id="photo-hint">Click any swatch →</span>
+    <div id="metal-picker">
+      <button id="btn-gold" class="active">✦ Gold</button>
+      <button id="btn-silver">✦ Silver</button>
+    </div>
+  </div>
+
+  <div id="palette-panel">
+    <div id="family-tabs"></div>
+    <div id="sub-list"></div>
+    <div id="panel-footer"></div>
+  </div>
+</div>
+```
+
+- [ ] **Step 3: Add the render functions and event wiring in the `<script>` block**
+
+Append to the `<script>` block (after the upload wiring):
+
+```js
+// ── Foil textures ──
+// Replace GOLD_URL and SILVER_URL with base64 data URLs (see Task 6).
+const GOLD_URL = '';
+const SILVER_URL = '';
+
+// ── Render ──
+function render() {
+  const family = SEASONS[state.familyIndex];
+  const sub = family.sub[state.subIndex];
+
+  // Photo
+  document.getElementById('photo-img').src = state.photoUrl || '';
+
+  // Mode toggle buttons
+  document.querySelectorAll('#mode-toggle button').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.mode === state.mode);
+  });
+
+  // Palette panel dim
+  document.getElementById('palette-panel').classList.toggle('dimmed', state.mode === 'metals');
+
+  // Controls below photo
+  document.getElementById('photo-hint').style.display = state.mode === 'metals' ? 'none' : '';
+  document.getElementById('metal-picker').style.display = state.mode === 'metals' ? 'flex' : 'none';
+
+  // Metal buttons
+  document.getElementById('btn-gold').classList.toggle('active', state.metal === 'gold');
+  document.getElementById('btn-silver').classList.toggle('active', state.metal === 'silver');
+
+  // Background
+  renderBackground(sub);
+
+  // Family tabs
+  const tabsEl = document.getElementById('family-tabs');
+  tabsEl.innerHTML = SEASONS.map((f, i) =>
+    `<button class="family-tab${i === state.familyIndex ? ' active' : ''}" data-fi="${i}">${f.family}</button>`
+  ).join('');
+
+  // Sub-season list
+  const listEl = document.getElementById('sub-list');
+  listEl.innerHTML = family.sub.map((s, si) => `
+    <div class="sub-card${si === state.subIndex ? ' active' : ''}" data-si="${si}">
+      <div class="sub-header">
+        <span class="sub-name">${s.name}</span>
+        <span class="sub-traits">${s.traits}</span>
+      </div>
+      <div class="swatches">
+        ${s.swatches.map((hex, wi) =>
+          `<div class="swatch${state.mode === 'solid' && si === state.subIndex && wi === state.swatchIndex ? ' active' : ''}"
+               style="background:${hex}"
+               data-si="${si}" data-wi="${wi}"></div>`
+        ).join('')}
+      </div>
+    </div>
+  `).join('');
+
+  // Footer
+  document.getElementById('panel-footer').innerHTML =
+    `Browsing <strong>${family.family}</strong> — ${state.mode === 'metals' ? 'switch to Solid or Stripes to browse palettes' : 'click swatches to preview colors'}`;
+}
+
+function renderBackground(sub) {
+  const bg = document.getElementById('photo-bg');
+  if (state.mode === 'solid') {
+    bg.style.cssText = `background:${sub.swatches[state.swatchIndex]};`;
+  } else if (state.mode === 'stripes') {
+    const w = 100 / sub.swatches.length;
+    const stops = sub.swatches.map((hex, i) =>
+      `${hex} ${i * w}% ${(i + 1) * w}%`
+    ).join(', ');
+    bg.style.cssText = `background: linear-gradient(90deg, ${stops});`;
+  } else {
+    const url = state.metal === 'gold' ? GOLD_URL : SILVER_URL;
+    bg.style.cssText = url
+      ? `background-image:url(${url});background-size:cover;background-position:center;`
+      : `background:${state.metal === 'gold' ? '#C9A84C' : '#A8A8B8'};`;
+  }
+}
+
+// ── Event delegation ──
+document.getElementById('mode-toggle').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-mode]');
+  if (!btn) return;
+  state.mode = btn.dataset.mode;
+  render();
+});
+
+document.getElementById('btn-gold').addEventListener('click', () => { state.metal = 'gold'; render(); });
+document.getElementById('btn-silver').addEventListener('click', () => { state.metal = 'silver'; render(); });
+
+document.getElementById('family-tabs').addEventListener('click', e => {
+  const tab = e.target.closest('[data-fi]');
+  if (!tab) return;
+  state.familyIndex = +tab.dataset.fi;
+  state.subIndex = 0;
+  state.swatchIndex = 0;
+  render();
+});
+
+document.getElementById('sub-list').addEventListener('click', e => {
+  const swatch = e.target.closest('.swatch');
+  if (swatch && state.mode !== 'stripes') {
+    state.subIndex = +swatch.dataset.si;
+    state.swatchIndex = +swatch.dataset.wi;
+    render();
+    return;
+  }
+  const card = e.target.closest('.sub-card');
+  if (card) {
+    state.subIndex = +card.dataset.si;
+    state.swatchIndex = 0;
+    render();
+  }
+});
+
+// Call render after photo loads
+const _origShowExplorer = showExplorer;
+showExplorer = function() {
+  _origShowExplorer();
+  render();
+};
+```
+
+- [ ] **Step 4: Open in browser and verify the explorer**
+
+Upload a photo. You should see:
+- Photo displayed in the frame
+- Family tabs render (Spring/Summer/Autumn/Winter)
+- 3 sub-season cards under the active family, each with 12 swatches
+- Clicking a swatch applies its color as the solid background
+- Clicking a family tab switches families (resets to first sub, first swatch)
+- Clicking a sub-card header (not a swatch) selects that sub-season
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add seasonal.html
+git commit -m "feat: seasonal — explorer layout, palette panel, solid mode"
+```
+
+---
+
+### Task 4: Stripes mode
+
+The `renderBackground()` function already handles Stripes mode via a CSS linear-gradient. This task verifies it works and fixes edge cases.
+
+**Files:**
+- Modify: `seasonal.html` — verify existing stripes logic
+
+- [ ] **Step 1: Verify stripes render**
+
+Upload a photo, then click **Stripes** in the mode toggle. The background of the photo frame should show 12 equal vertical colour strips from the active sub-season. Switching sub-season cards should update all 12 strips.
+
+Expected: each strip is approximately `200px / 12 ≈ 16.7px` wide. The strips span the full height of the frame.
+
+- [ ] **Step 2: Verify swatches are not interactive in Stripes mode**
+
+In Stripes mode, clicking a swatch should do nothing (the event handler guards `state.mode !== 'stripes'`). To apply a single color, the user must switch to Solid mode first.
+
+Confirm: clicking a swatch in Stripes mode has no effect. Clicking a sub-season card (the non-swatch area) still switches sub-seasons and updates the strips.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add seasonal.html
+git commit -m "feat: seasonal — stripes mode verified"
+```
+
+---
+
+### Task 5: Metals mode — embed foil textures
+
+**Files:**
+- Modify: `seasonal.html` — replace `GOLD_URL` and `SILVER_URL` with base64 data
+
+- [ ] **Step 1: Convert the foil images to base64**
+
+You need the two foil texture images the user provided. Save them locally as `gold-foil.jpg` and `silver-foil.jpg`, then run:
+
+```bash
+base64 -i gold-foil.jpg | tr -d '\n' > gold-foil.b64
+base64 -i silver-foil.jpg | tr -d '\n' > silver-foil.b64
+```
+
+Then build the data URLs:
+```
+data:image/jpeg;base64,<contents of gold-foil.b64>
+data:image/jpeg;base64,<contents of silver-foil.b64>
+```
+
+- [ ] **Step 2: Replace the placeholder constants**
+
+In `seasonal.html`, find:
+```js
+const GOLD_URL = '';
+const SILVER_URL = '';
+```
+
+Replace with:
+```js
+const GOLD_URL = 'data:image/jpeg;base64,<paste gold-foil.b64 contents here>';
+const SILVER_URL = 'data:image/jpeg;base64,<paste silver-foil.b64 contents here>';
+```
+
+> Note: each data URL will be several hundred KB of text inline in the file. This is intentional — it keeps the file self-contained.
+
+- [ ] **Step 3: Clean up temp files**
+
+```bash
+rm gold-foil.b64 silver-foil.b64
+```
+
+- [ ] **Step 4: Verify metals mode**
+
+Upload a photo, click **Metals**. The palette panel should dim. Gold button should be active by default with the gold foil texture filling the photo frame background. Clicking Silver should switch to the silver texture. Switching to Solid or Stripes should restore the palette panel and hide the metal picker.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add seasonal.html
+git commit -m "feat: seasonal — metals mode with embedded foil textures"
+```
+
+---
+
+### Task 6: Polish and final wiring
+
+**Files:**
+- Modify: `seasonal.html` — visual polish, edge cases
+
+- [ ] **Step 1: Ensure first swatch is pre-selected on load**
+
+When the explorer first opens, `state.swatchIndex = 0` and `state.subIndex = 0` so the first swatch of the first sub-season should be visually highlighted and applied as the background. Verify this is the case after uploading a photo.
+
+- [ ] **Step 2: Add smooth background transition**
+
+`#photo-bg` already has `transition: background-color 0.2s` from Task 3. Verify the color transition is smooth when clicking swatches in Solid mode. Background-image transitions (metals) do not animate — this is acceptable.
+
+- [ ] **Step 3: Constrain photo frame on very tall or very wide images**
+
+The photo `<img>` uses `object-fit: cover` inside a fixed `200×260px` frame. Verify this looks correct with a portrait photo, a landscape photo, and a roughly square photo. No code change needed if all three look acceptable.
+
+- [ ] **Step 4: Add the app to the project index**
+
+Open `index.html`, find the list of app links, and add:
+```html
+<a href="seasonal.html">Seasonal</a>
+```
+(Follow the existing link pattern in that file.)
+
+- [ ] **Step 5: Final browser walkthrough**
+
+Walk through the full user flow:
+1. Open `seasonal.html` → see upload screen
+2. Drag a photo onto the drop zone → see explorer screen, first swatch pre-applied
+3. Click through all 4 family tabs → verify 3 sub-seasons each
+4. Click individual swatches in Solid mode → background updates
+5. Switch to Stripes → 12 vertical strips appear, palette panel stays active
+6. Switch to Metals → palette panel dims, gold/silver buttons appear, textures load
+7. Toggle Gold ↔ Silver
+8. Switch back to Solid → palette panel active again
+9. Click "Upload new photo" → returns to upload screen
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add seasonal.html index.html
+git commit -m "feat: seasonal — polish, index link, full flow verified"
+```

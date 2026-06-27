@@ -75,4 +75,4 @@ Both embedded as base64 data URLs so the file remains fully self-contained. Appl
 - Automated color analysis of the uploaded photo
 - Saving or sharing results
 - Mobile layout (desktop-first for now)
-- More than Expanding beyond 12 swatches per sub-season
+- Expanding beyond 12 swatches per sub-season
