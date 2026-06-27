@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seasonal</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, sans-serif; background: #fff; color: #111; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* ── Header ── */
+  #header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 20px; border-bottom: 1.5px solid #eee;
+    flex-shrink: 0; background: #fff;
+  }
+  .dots { display: flex; gap: 5px; }
+  .dots span { width: 11px; height: 11px; border-radius: 50%; display: block; }
+  #app-name { font-weight: 800; font-size: 15px; letter-spacing: -0.3px; }
+  #new-photo-btn {
+    margin-left: auto; font-size: 11px; color: #aaa;
+    cursor: pointer; text-decoration: underline; border: none;
+    background: none; display: none;
+  }
+
+  /* ── Screens ── */
+  .screen { display: none; flex: 1; }
+  .screen.active { display: flex; }
+
+  /* ── Upload screen ── */
+  #upload-screen {
+    flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+  }
+  #upload-heading { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+  #upload-sub { font-size: 13px; color: #999; }
+  #drop-zone {
+    width: 260px; height: 180px;
+    border: 2.5px dashed #ddd; border-radius: 16px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 8px;
+    cursor: pointer; transition: border-color 0.2s;
+  }
+  #drop-zone:hover, #drop-zone.drag-over { border-color: #111; }
+  #drop-zone .icon { font-size: 28px; }
+  #drop-zone .label { font-size: 13px; font-weight: 600; }
+  #drop-zone .hint { font-size: 11px; color: #bbb; }
+  #file-input { display: none; }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="dots">
+    <span style="background:#F4C2A1"></span>
+    <span style="background:#A8C4D4"></span>
+    <span style="background:#C4A882"></span>
+    <span style="background:#2C2C3E"></span>
+  </div>
+  <span id="app-name">Seasonal</span>
+  <button id="new-photo-btn">Upload new photo</button>
+</div>
+
+<div id="upload-screen" class="screen active">
+  <div id="upload-heading">What's your season?</div>
+  <div id="upload-sub">Upload a photo to try on colour palettes</div>
+  <div id="drop-zone">
+    <span class="icon">🖼</span>
+    <span class="label">Drop a photo here</span>
+    <span class="hint">or click to browse</span>
+  </div>
+  <input type="file" id="file-input" accept="image/*">
+</div>
+
+<div id="explorer-screen" class="screen">
+  <!-- filled in Task 3 -->
+</div>
+
+<script>
+// ── State ──
+const state = {
+  photoUrl: null,
+  mode: 'solid',       // 'solid' | 'stripes' | 'metals'
+  familyIndex: 0,
+  subIndex: 0,
+  swatchIndex: 0,
+  metal: 'gold',       // 'gold' | 'silver'
+};
+
+// ── Upload wiring ──
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+
+dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) loadPhoto(file);
+});
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) loadPhoto(fileInput.files[0]);
+});
+
+function loadPhoto(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    state.photoUrl = e.target.result;
+    showExplorer();
+  };
+  reader.readAsDataURL(file);
+}
+
+function showExplorer() {
+  document.getElementById('upload-screen').classList.remove('active');
+  document.getElementById('explorer-screen').classList.add('active');
+  document.getElementById('new-photo-btn').style.display = 'block';
+}
+
+document.getElementById('new-photo-btn').addEventListener('click', () => {
+  state.photoUrl = null;
+  document.getElementById('explorer-screen').classList.remove('active');
+  document.getElementById('upload-screen').classList.add('active');
+  document.getElementById('new-photo-btn').style.display = 'none';
+  fileInput.value = '';
+});
+</script>
+</body>
+</html>
