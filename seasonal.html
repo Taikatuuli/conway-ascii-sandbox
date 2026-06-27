@@ -91,6 +91,20 @@
   object-fit: cover;
 }
 
+/* Circle crop toggle */
+#crop-toggle {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; color: #888; cursor: pointer;
+  border: none; background: none; padding: 0;
+}
+#crop-toggle .crop-icon {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 1.5px solid #ccc; display: flex; align-items: center;
+  justify-content: center; font-size: 10px; transition: all 0.15s;
+  flex-shrink: 0;
+}
+#crop-toggle.active .crop-icon { background: #111; border-color: #111; color: #fff; }
+
 /* Controls below photo */
 #photo-hint { font-size: 11px; color: #bbb; }
 #metal-picker { display: none; gap: 10px; }
@@ -202,6 +216,10 @@
       <div id="photo-bg"></div>
       <img id="photo-img" alt="Your photo">
     </div>
+    <button id="crop-toggle">
+      <span class="crop-icon">○</span>
+      Circle crop
+    </button>
     <span id="photo-hint">Click any swatch →</span>
     <div id="metal-picker">
       <button id="btn-gold" class="active">✦ Gold</button>
@@ -309,6 +327,7 @@ const state = {
   subIndex: 0,
   swatchIndex: 0,
   metal: 'gold',       // 'gold' | 'silver'
+  circleCrop: false,
 };
 
 // ── Upload wiring ──
@@ -381,6 +400,13 @@ function render() {
   document.getElementById('btn-gold').classList.toggle('active', state.metal === 'gold');
   document.getElementById('btn-silver').classList.toggle('active', state.metal === 'silver');
 
+  // Circle crop
+  const cropToggle = document.getElementById('crop-toggle');
+  cropToggle.classList.toggle('active', state.circleCrop);
+  const radius = state.circleCrop ? '50%' : '0';
+  document.getElementById('photo-img').style.borderRadius = radius;
+  document.getElementById('photo-bg').style.borderRadius = radius;
+
   // Background
   renderBackground(sub);
 
@@ -418,11 +444,11 @@ function renderBackground(sub) {
   if (state.mode === 'solid') {
     bg.style.cssText = `background:${sub.swatches[state.swatchIndex]};`;
   } else if (state.mode === 'stripes') {
-    const w = 100 / sub.swatches.length;
+    const deg = 360 / sub.swatches.length;
     const stops = sub.swatches.map((hex, i) =>
-      `${hex} ${i * w}% ${(i + 1) * w}%`
+      `${hex} ${i * deg}deg ${(i + 1) * deg}deg`
     ).join(', ');
-    bg.style.cssText = `background: linear-gradient(90deg, ${stops});`;
+    bg.style.cssText = `background: conic-gradient(from 0deg at 50% 50%, ${stops});`;
   } else {
     const url = state.metal === 'gold' ? GOLD_URL : SILVER_URL;
     bg.style.cssText = url
@@ -438,6 +464,8 @@ document.getElementById('mode-toggle').addEventListener('click', e => {
   state.mode = btn.dataset.mode;
   render();
 });
+
+document.getElementById('crop-toggle').addEventListener('click', () => { state.circleCrop = !state.circleCrop; render(); });
 
 document.getElementById('btn-gold').addEventListener('click', () => { state.metal = 'gold'; render(); });
 document.getElementById('btn-silver').addEventListener('click', () => { state.metal = 'silver'; render(); });
