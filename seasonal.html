@@ -335,6 +335,7 @@ function loadPhoto(file) {
     showExplorer();
   };
   reader.readAsDataURL(file);
+  fileInput.value = '';
 }
 
 function showExplorer() {
