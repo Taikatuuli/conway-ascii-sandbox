@@ -76,6 +76,90 @@
 </div>
 
 <script>
+// ── Seasons data ──
+const SEASONS = [
+  {
+    family: 'Spring',
+    sub: [
+      {
+        name: 'True Spring',
+        traits: 'Warm · Clear · Golden',
+        swatches: ['#F9A870','#F7C566','#E8834A','#7CC8A0','#5BBCD0','#F4756B','#F2D06B','#8BC88B','#FF8C69','#FFB347','#87CEAB','#4DBDC8'],
+      },
+      {
+        name: 'Light Spring',
+        traits: 'Warm · Delicate · Light',
+        swatches: ['#FDD9B5','#FAEAC0','#F9C9A8','#B8E0CC','#A8D8E8','#F5B8B0','#FCE8A0','#C8E8C8','#FFD4B8','#FFE8A8','#C8ECD8','#B8D8E8'],
+      },
+      {
+        name: 'Bright Spring',
+        traits: 'Warm · Vivid · High Contrast',
+        swatches: ['#FF6B35','#FFD700','#FF4500','#00CC88','#00BBDD','#FF1493','#FFAA00','#00DD66','#FF5500','#FFCC00','#00CCAA','#FF3366'],
+      },
+    ],
+  },
+  {
+    family: 'Summer',
+    sub: [
+      {
+        name: 'Light Summer',
+        traits: 'Cool · Soft · Light',
+        swatches: ['#B8CDD8','#C4B8D4','#D4C0C8','#A8C8D0','#C0C8E0','#D0B8C8','#B8D0D8','#C8B8DC','#BCCCD8','#C8D0E0','#D4BCC8','#A8C0D0'],
+      },
+      {
+        name: 'True Summer',
+        traits: 'Cool · Muted · Medium',
+        swatches: ['#6B8FA8','#8A7A9A','#9A8A8A','#7A9A8A','#7A8FA0','#907888','#708898','#887098','#988080','#789088','#6A8898','#887890'],
+      },
+      {
+        name: 'Soft Summer',
+        traits: 'Cool · Greyed · Neutral',
+        swatches: ['#8A8A8A','#9A8A7A','#7A8A7A','#8A7A6A','#7A7A8A','#8A8478','#7E8880','#887A80','#808878','#7A8080','#888078','#807878'],
+      },
+    ],
+  },
+  {
+    family: 'Autumn',
+    sub: [
+      {
+        name: 'Soft Autumn',
+        traits: 'Warm · Muted · Neutral',
+        swatches: ['#C4A882','#B8956A','#D4B88A','#8A9870','#A89060','#C0A878','#B09068','#A8986A','#C4B080','#9A8858','#BCA870','#A09060'],
+      },
+      {
+        name: 'True Autumn',
+        traits: 'Warm · Rich · Medium',
+        swatches: ['#C47A3A','#8B5E3C','#5C3D2E','#6B8040','#C4922A','#A86830','#7A5030','#B88040','#506830','#C08030','#8A6040','#4A5828'],
+      },
+      {
+        name: 'Deep Autumn',
+        traits: 'Warm · Deep · Saturated',
+        swatches: ['#8B2500','#5C3317','#2D4A1A','#6B4010','#8B4A00','#4A2810','#3D5020','#703010','#5A1800','#483818','#2A3818','#6A3808'],
+      },
+    ],
+  },
+  {
+    family: 'Winter',
+    sub: [
+      {
+        name: 'Deep Winter',
+        traits: 'Cool · Deep · Rich',
+        swatches: ['#1A1A2E','#2D1B4E','#1A3A2A','#3A0A0A','#0A2A4A','#2A0A2E','#0A3A1A','#3A1A0A','#1A0A3A','#2A2A1A','#0A1A3A','#3A0A1E'],
+      },
+      {
+        name: 'True Winter',
+        traits: 'Cool · High Contrast · Vivid',
+        swatches: ['#C41E3A','#4169E1','#008080','#E8E8F0','#1A1A2E','#FF0066','#0066CC','#009988','#CC0033','#3355BB','#007766','#F0F0FF'],
+      },
+      {
+        name: 'Bright Winter',
+        traits: 'Cool · Vivid · High Contrast',
+        swatches: ['#FF0080','#0044FF','#00CC66','#FF003A','#6600CC','#00AAFF','#FF4488','#0033EE','#00FF88','#CC0066','#4400BB','#00BBFF'],
+      },
+    ],
+  },
+];
+
 // ── State ──
 const state = {
   photoUrl: null,
