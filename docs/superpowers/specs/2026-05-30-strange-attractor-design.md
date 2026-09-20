@@ -90,10 +90,12 @@ On **Export SVG** click:
    ```xml
    <svg xmlns="..." width="W" height="H" viewBox="0 0 W H">
      <rect width="W" height="H" fill="<bg-color>"/>
-     <path d="M x,y L x,y ..." fill="none" stroke="<line-color>" stroke-width="1" opacity="<opacity>"/>
+     <path d="M x,y L x,y ..." fill="none" stroke="<line-color>" stroke-width="<scaled>" opacity="<opacity>"/>
    </svg>
    ```
 4. Trigger download as `attractor.svg`
+
+> `stroke-width` scales with output height: `strokeWidth = outputHeight / 1080`. A 1px stroke at 1080p becomes 2px at 4K — keeps line weight visually consistent across resolutions.
 
 ### Output Size Presets
 
