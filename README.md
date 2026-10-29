@@ -1,4 +1,4 @@
-# ✴✴✴✴ Game of Life ✴✴✴✴
+# ✧✧✧✧ Game of Life ✧✧✧✧
 
 Game of Life is a zero-player simulation that demonstrates how complex life-like  behavior can emerge from simple rules. It was originally created by John Horton Conway in 1970. 
 
